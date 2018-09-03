@@ -49,6 +49,8 @@ class FileDownloader {
                                 }
 
                                 override fun onParseSuccess(list: List<String>) {
+                                    var downloader = MediaDownloader()
+                                    downloader.download(list)
                                 }
                             })
                         }
