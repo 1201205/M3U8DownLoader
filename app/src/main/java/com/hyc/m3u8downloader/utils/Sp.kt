@@ -7,7 +7,7 @@ import kotlin.reflect.KProperty
 
 @Suppress("UNCHECKED_CAST")
 class Sp<T>(val name: String, val default: T) {
-    val pref: SharedPreferences by lazy { MainApplication.instance.getSharedPreferences(name, Context.MODE_PRIVATE) }
+    val pref: SharedPreferences by lazy { MainApplication.instance.getSharedPreferences("downloader", Context.MODE_PRIVATE) }
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
         return getSharedPreferences(name, default)
     }

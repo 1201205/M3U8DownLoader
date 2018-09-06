@@ -1,6 +1,8 @@
 package com.hyc.m3u8downloader
 
 import android.app.Application
+import android.util.Log
+import com.hyc.m3u8downloader.utils.CMDUtil
 import kotlin.properties.Delegates
 
 class MainApplication : Application() {
@@ -11,5 +13,6 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        Log.d("cmd", CMDUtil.instance.canUseCMD().toString())
     }
 }

@@ -7,14 +7,14 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class M3u8Downloader(private val path: String, private val lock: MultLock, private val call: Call) : Runnable {
+class M3u8Downloader(var index:Int,private val path: String, private val lock: DownloadCallback, private val call: Call) : Runnable {
 
     override fun run() {
-        call.request().url().toString()
+
         call.execute().let { response ->
             var inputStream: InputStream
             var buf = ByteArray(2048)
-            var fos: FileOutputStream
+            var fos: FileOutputStream?=null
             try {
                 response.body()?.let { rs ->
                     inputStream = rs.byteStream()
@@ -24,25 +24,27 @@ class M3u8Downloader(private val path: String, private val lock: MultLock, priva
                     var sum = 0L
                     var len = 0
                     while (inputStream.read(buf).apply { len = this } != -1) {
-                        fos.write(buf, 0, len)
+                        fos!!.write(buf, 0, len)
                         sum += len
                         Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
                     }
                     Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
-                    fos.flush()
+                    lock.onFileDownloadSuccess()
                 }
             } catch (e: Exception) {
+                lock.onFileDownloadFailed(call.request().url().toString(),index)
                 e.printStackTrace()
             }
+            fos?.flush()
         }
-        lock.unlock()
     }
 
     private fun getFilePath(url: String): String {
         return ""
     }
 
-//    interface DownloadCallback{
-//        fun onFileDownloadSuccess()
-//    }
+    interface DownloadCallback{
+        fun onFileDownloadSuccess()
+        fun onFileDownloadFailed(url: String,index:Int)
+    }
 }

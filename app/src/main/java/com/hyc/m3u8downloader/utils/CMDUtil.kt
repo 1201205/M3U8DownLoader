@@ -1,5 +1,7 @@
 package com.hyc.m3u8downloader.utils
 
+import android.text.TextUtils
+import android.util.Log
 import com.hyc.m3u8downloader.MainApplication
 import java.io.File
 import java.io.FileOutputStream
@@ -31,6 +33,7 @@ class CMDUtil private constructor() {
         if (hasCMDFile) {
             file.setExecutable(true)
             absFilePath = file.absolutePath
+            Runtime.getRuntime().exec("chmod 777 $absFilePath")
         }
     }
 
@@ -38,6 +41,16 @@ class CMDUtil private constructor() {
         val instance: CMDUtil by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
             CMDUtil()
         }
+    }
+
+    fun execute(cmd: String) {
+        Runtime.getRuntime().exec(cmd)
+    }
+
+    fun canUseCMD() = !TextUtils.isEmpty(absFilePath)
+    fun executeMerge(configPath: String, targetPath: String) {
+        Runtime.getRuntime().exec("$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
+        Log.e("cmd","$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
     }
 
 }

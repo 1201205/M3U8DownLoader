@@ -1,6 +1,8 @@
 package com.hyc.m3u8downloader
 
+import android.annotation.SuppressLint
 import android.util.Log
+import com.hyc.m3u8downloader.utils.MD5Util
 import okhttp3.*
 import java.io.File
 import java.io.FileOutputStream
@@ -9,6 +11,18 @@ import java.io.InputStream
 
 class FileDownloader {
     var mClient: OkHttpClient = OkHttpClient()
+    @SuppressLint("SdCardPath")
+    fun downLoad(url: String, callBack: DownloadCallBack) {
+        val parent="/sdcard/m3u8/" + MD5Util.crypt(url)
+        File(parent).mkdirs()
+
+        val path = parent +"/0.m3u8"
+        val file = File(path)
+            file.deleteOnExit()
+        file.createNewFile()
+        Log.e("hyc-downloader", "first file---" + path)
+        downLoad(url, path, callBack)
+    }
 
     fun downLoad(url: String, path: String, callBack: DownloadCallBack) {
         val request = Request.Builder().url(url).build()
@@ -36,7 +50,7 @@ class FileDownloader {
                             callBack.onDownloadSuccess(url)
                             M3u8FileParser().parse(url, file, object : ParseCallBack {
                                 override fun onNeedDownLoad(url: String) {
-                                    downLoad(url, "/sdcard/2.m3u8", object : DownloadCallBack {
+                                    downLoad(url, object : DownloadCallBack {
                                         override fun onDownloadSuccess(url: String) {
                                         }
 
@@ -50,7 +64,7 @@ class FileDownloader {
 
                                 override fun onParseSuccess(list: List<String>) {
                                     var downloader = MediaDownloader()
-                                    downloader.download(list)
+                                    downloader.download(list, File(path).parentFile.absolutePath)
                                 }
                             })
                         }
