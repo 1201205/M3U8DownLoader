@@ -13,12 +13,11 @@ class MultLock(var max: Int) : Lock {
     }
 
     override fun tryLock(): Boolean {
-//        return sync.acquireShared(1) > 0
-        return true
+        throw UnsupportedOperationException("please use lock")
     }
 
     override fun tryLock(time: Long, unit: TimeUnit?): Boolean {
-        throw UnsupportedOperationException("please use tryLock")
+        throw UnsupportedOperationException("please use lock")
     }
 
     override fun unlock() {
@@ -33,7 +32,7 @@ class MultLock(var max: Int) : Lock {
         throw UnsupportedOperationException()
     }
 
-    class Sync(var max: Int) : AbstractQueuedSynchronizer() {
+    class Sync(max: Int) : AbstractQueuedSynchronizer() {
         init {
             if (max <= 0) {
                 throw IllegalArgumentException("max thread count must larger than 0")

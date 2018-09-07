@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         })
+        Log.e("hyc-path",com.hyc.m3u8downloader.utils.getUrlFilePath("dadasdas"))
 
     }
 }

@@ -11,20 +11,43 @@ import java.io.InputStream
 
 class FileDownloader {
     var mClient: OkHttpClient = OkHttpClient()
+    lateinit var mParentPath: String
+    var mRedirect = 0
+    var mFileArray = ArrayList<String>()//目的为了删除多余的文件
     @SuppressLint("SdCardPath")
     fun downLoad(url: String, callBack: DownloadCallBack) {
-        val parent="/sdcard/m3u8/" + MD5Util.crypt(url)
-        File(parent).mkdirs()
-
-        val path = parent +"/0.m3u8"
+        mParentPath = "/sdcard/m3u8/" + MD5Util.crypt(url)
+        mFileArray.add(mParentPath)
+        File(mParentPath).mkdirs()
+        val path = getFilePath()
         val file = File(path)
-            file.deleteOnExit()
+        file.deleteOnExit()
         file.createNewFile()
-        Log.e("hyc-downloader", "first file---" + path)
+        Log.e("hyc-downloader", "first file---$path")
         downLoad(url, path, callBack)
+        mRedirect++
     }
 
-    fun downLoad(url: String, path: String, callBack: DownloadCallBack) {
+    private fun getFilePath(): String = "$mParentPath/$mRedirect.m3u8"
+
+    private fun onDownloadSuccess() {
+        mFileArray.forEach {
+            deleteFile(File(it))
+        }
+    }
+
+    private fun deleteFile(file: File) {
+        //目前先订为mp4
+        if (file.isFile && file.absolutePath.endsWith(".mp4")) {
+            file.delete()
+        } else if (file.isDirectory) {
+            file.listFiles().forEach {
+                deleteFile(it)
+            }
+        }
+    }
+
+    private fun downLoad(url: String, path: String, callBack: DownloadCallBack) {
         val request = Request.Builder().url(url).build()
         mClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call?, response: Response?) {
@@ -64,7 +87,14 @@ class FileDownloader {
 
                                 override fun onParseSuccess(list: List<String>) {
                                     var downloader = MediaDownloader()
-                                    downloader.download(list, File(path).parentFile.absolutePath)
+                                    downloader.download(list, File(path).parentFile.absolutePath, object : MediaMergeCallback {
+                                        override fun onSuccess() {
+                                            deleteFile(File(File(path).parentFile.absolutePath))
+                                        }
+
+                                        override fun onFailed() {
+                                        }
+                                    })
                                 }
                             })
                         }
@@ -77,5 +107,10 @@ class FileDownloader {
             override fun onFailure(call: Call?, e: IOException?) {
             }
         })
+    }
+
+    interface MediaMergeCallback {
+        fun onSuccess()
+        fun onFailed()
     }
 }
