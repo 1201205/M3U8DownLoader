@@ -31,14 +31,15 @@ class FileDownloader {
     private fun getFilePath(): String = "$mParentPath/$mRedirect.m3u8"
 
     private fun onDownloadSuccess() {
-        mFileArray.forEach {
-            deleteFile(File(it))
+        Log.e("file-downloader", "onDownloadSuccess")
+        for (path in mFileArray) {
+            deleteFile(File(path))
         }
     }
 
     private fun deleteFile(file: File) {
         //目前先订为mp4
-        if (file.isFile && file.absolutePath.endsWith(".mp4")) {
+        if (file.isFile && !file.absolutePath.endsWith(".mp4")) {
             file.delete()
         } else if (file.isDirectory) {
             file.listFiles().forEach {
@@ -89,7 +90,7 @@ class FileDownloader {
                                     var downloader = MediaDownloader()
                                     downloader.download(list, File(path).parentFile.absolutePath, object : MediaMergeCallback {
                                         override fun onSuccess() {
-                                            deleteFile(File(File(path).parentFile.absolutePath))
+                                            onDownloadSuccess()
                                         }
 
                                         override fun onFailed() {

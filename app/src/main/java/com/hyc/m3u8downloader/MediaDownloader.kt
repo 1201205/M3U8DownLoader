@@ -12,6 +12,7 @@ import java.util.ArrayList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 class MediaDownloader : Thread() {
     /**
@@ -111,6 +112,7 @@ class MediaDownloader : Thread() {
             writer.close()
             fw.close()
             CMDUtil.instance.executeMerge(file!!.absolutePath, "$path/main.mp4")
+            Log.e("hyc-media","success")
             mediaCallback.onSuccess()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -148,7 +150,7 @@ class MediaDownloader : Thread() {
             executor = Executors.newCachedThreadPool()
         }
         if (client == null) {
-            client = OkHttpClient()
+            client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
         }
         lock = MultLock(maxThreadCount)
         copyList.addAll(list)
