@@ -8,10 +8,17 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import com.hyc.m3u8downloader.model.MediaItem
+import com.hyc.m3u8downloader.model.MyDatabase
+import com.hyc.m3u8downloader.model.TSItem
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStreamReader
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,5 +50,26 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         }
+        var item = MediaItem()
+        item.name = "1"
+//        item.id=1
+        var list = ArrayList<TSItem>()
+        for (i in 1..10) {
+            var tsItem = TSItem()
+//            tsItem.mediaId=1
+            tsItem.path = "aaaa" + i
+            list.add(tsItem)
+        }
+        Observable.create<Any> { MyDatabase.getInstance().getMediaItemDao().insertMedia(item) }.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe()
+        MyDatabase.getInstance().getMediaItemDao().loadLastItem().subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe { it ->
+            it?.let {
+                Log.e("hyc--oo", it.toString())
+            }
+        }
+//        Thread(object :Runnable{
+//            override fun run() {
+//              Log.d("hyc-db",MyDatabase.getInstance().getMediaItemDao().loadLastItem().toString())
+//            }
+//        }).start()
     }
 }

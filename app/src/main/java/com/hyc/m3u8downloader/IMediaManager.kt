@@ -1,5 +1,6 @@
 package com.hyc.m3u8downloader
 
+import com.hyc.m3u8downloader.model.MediaItem
 import java.util.ArrayList
 
 interface IMediaManager {

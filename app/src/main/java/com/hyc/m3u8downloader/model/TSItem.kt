@@ -15,4 +15,8 @@ class TSItem {
     var url: String? = null
     @ColumnInfo(name = "media_id")
     var mediaId: Long? = null
+
+    override fun toString(): String {
+        return "TSItem(tsId=$tsId, index=$index, path=$path, url=$url, mediaId=$mediaId)"
+    }
 }
