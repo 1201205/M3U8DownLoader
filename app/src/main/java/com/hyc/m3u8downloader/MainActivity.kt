@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 //        })
         btEnter = findViewById(R.id.bt_enter)
         etUrl = findViewById(R.id.et_url)
-        btEnter.setOnClickListener(View.OnClickListener {
+        btEnter.setOnClickListener {
             FileDownloader().downLoad(etUrl.text.toString(), object : DownloadCallBack {
                 override fun onDownloadSuccess(url: String) {
                 }
@@ -42,8 +42,6 @@ class MainActivity : AppCompatActivity() {
                 override fun onDownloadFailed(url: String) {
                 }
             })
-        })
-        Log.e("hyc-path",com.hyc.m3u8downloader.utils.getUrlFilePath("dadasdas"))
-
+        }
     }
 }
