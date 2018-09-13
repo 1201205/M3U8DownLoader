@@ -43,14 +43,14 @@ class MediaDownloader : Thread() {
         }
 
         override fun onFileDownloadSuccess(url: String) {
-            lock!!.unlock()
             downloadingList.remove(url)
+            lock!!.unlock()
         }
 
         override fun onFileDownloadFailed(url: String, index: Int) {
             map.put(index, url)
-            lock!!.unlock()
             downloadingList.remove(url)
+            lock!!.unlock()
         }
 
     }

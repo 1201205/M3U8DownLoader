@@ -1,6 +1,8 @@
 package com.hyc.m3u8downloader
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
@@ -12,31 +14,46 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.model.MyDatabase
 import com.hyc.m3u8downloader.model.TSItem
 import com.hyc.m3u8downloader.utils.CMDUtil
 import com.hyc.m3u8downloader.view.MainAdapter
+import com.hyc.m3u8downloader.view.MediaController
+import com.hyc.m3u8downloader.view.MenuDialog
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStreamReader
-import java.util.*
 import kotlin.collections.ArrayList
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MediaController {
+    override fun createNewMedia(url: String, name: String) {
+        FileDownloader().downLoad(url,object :DownloadCallBack{
+            override fun onDownloadSuccess(url: String) {
+            }
+
+            override fun onDownloadFailed(url: String) {
+            }
+        })
+    }
+
+    override fun pauseAll() {
+    }
+
+    override fun resumeAll() {
+    }
 
     private val SDCARD_PERMISSION_R = Manifest.permission.READ_EXTERNAL_STORAGE
     private val SDCARD_PERMISSION_W = Manifest.permission.WRITE_EXTERNAL_STORAGE
-
+    val mRequestCode = 100
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        ActivityCompat.requestPermissions(this@MainActivity,
-                arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W), 100)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ActivityCompat.requestPermissions(this@MainActivity,
+                    arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W), 100)
+        }
 //        FileDownloader().downLoad("http://gncdn.wb699.com/20180831/Avl99908/index.m3u8","/sdcard/1.m3u8",object :DownloadCallBack{
 //            override fun onDownloadSuccess(url: String) {
 //            }
@@ -82,8 +99,9 @@ class MainActivity : AppCompatActivity() {
             it.adapter = MainAdapter(list2)
             var manager = LinearLayoutManager(this)
             it.layoutManager = manager
-            it.postDelayed({        CMDUtil.instance.exeThumb("/sdcard/m3u8/1.ts","/sdcard/m3u8/23.jpg",200,200,5f)
-            },2000)
+            it.postDelayed({
+                CMDUtil.instance.exeThumb("/sdcard/m3u8/1.ts", "/sdcard/m3u8/23.jpg", 200, 200, 5f)
+            }, 2000)
         }
 
         findViewById<FloatingActionButton>(R.id.fab_menu).setOnClickListener { showBottomMenu() }
@@ -94,10 +112,24 @@ class MainActivity : AppCompatActivity() {
 //        }).start()
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (mRequestCode == requestCode) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            } else {
+                Toast.makeText(this, "抱歉，未获取到读写权限，无法使用该应用", Toast.LENGTH_LONG).show()
+                finish()
+            }
+        }
+
+    }
+
     private fun showBottomMenu() {
-        val dialog = BottomSheetDialog(this)
-        val view = layoutInflater.inflate(R.layout.dialog_menu, null)
-        dialog.setContentView(view)
-        dialog.show()
+        MenuDialog(this,this).show()
+//        val dialog = BottomSheetDialog(this)
+//        val view = layoutInflater.inflate(R.layout.dialog_menu, null)
+//        dialog.setContentView(view)
+//        dialog.show()
     }
 }

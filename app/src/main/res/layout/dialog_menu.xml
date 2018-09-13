@@ -7,6 +7,7 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
     <TextView
+        android:id="@+id/tv_new"
         style="@style/menuText"
         android:text="新建m3u8下载" />
     <View
@@ -14,6 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="0.5dp"/>
     <TextView
+        android:id="@+id/tv_pause"
         android:text="暂停所有下载"
         style="@style/menuText"/>
     <View
@@ -21,6 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="0.5dp"/>
     <TextView
+        android:id="@+id/tv_start"
         android:text="开始所有下载"
         style="@style/menuText"/>
 </LinearLayout>

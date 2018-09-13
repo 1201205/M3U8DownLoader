@@ -1,6 +1,7 @@
 package com.hyc.m3u8downloader
 
 import android.annotation.SuppressLint
+import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.utils.MD5Util
 import okhttp3.*
@@ -11,13 +12,15 @@ import java.io.InputStream
 
 class FileDownloader {
     var mClient: OkHttpClient = OkHttpClient()
-    lateinit var mParentPath: String
+    private var mParentPath: String?=null
     var mRedirect = 0
     var mFileArray = ArrayList<String>()//目的为了删除多余的文件
     @SuppressLint("SdCardPath")
     fun downLoad(url: String, callBack: DownloadCallBack) {
-        mParentPath = "/sdcard/m3u8/" + MD5Util.crypt(url)
-        mFileArray.add(mParentPath)
+        if (TextUtils.isEmpty(mParentPath)) {
+            mParentPath = "/sdcard/m3u8/" + MD5Util.crypt(url)
+        }
+        mFileArray.add(mParentPath!!)
         File(mParentPath).mkdirs()
         val path = getFilePath()
         val file = File(path)
@@ -27,25 +30,24 @@ class FileDownloader {
         downLoad(url, path, callBack)
         mRedirect++
     }
-
     private fun getFilePath(): String = "$mParentPath/$mRedirect.m3u8"
 
     private fun onDownloadSuccess() {
         Log.e("file-downloader", "onDownloadSuccess")
-        for (path in mFileArray) {
-            deleteFile(File(path))
-        }
+//        for (path in mFileArray) {
+//            deleteFile(File(path))
+//        }
     }
 
     private fun deleteFile(file: File) {
         //目前先订为mp4
-        if (file.isFile && !file.absolutePath.endsWith(".mp4")) {
-            file.delete()
-        } else if (file.isDirectory) {
-            file.listFiles().forEach {
-                deleteFile(it)
-            }
-        }
+//        if (file.isFile && !file.absolutePath.endsWith(".mp4")) {
+//            file.delete()
+//        } else if (file.isDirectory) {
+//            file.listFiles().forEach {
+//                deleteFile(it)
+//            }
+//        }
     }
 
     private fun downLoad(url: String, path: String, callBack: DownloadCallBack) {
