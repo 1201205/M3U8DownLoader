@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:id="@+id/iv_pic"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@mipmap/ic_launcher" />
+    <Button
+        android:id="@+id/bt_state"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_width="60dp"
+        android:layout_height="60dp" />
+    <TextView
+        android:id="@+id/tv_name"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/iv_pic"
+        android:maxLines="1"
+        tools:text="111111111111111111111111111111" />
+    <TextView
+        android:layout_below="@+id/tv_name"
+        android:id="@+id/tv_count"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/iv_pic"
+        android:maxLines="1"
+        tools:text="111111111111111111111111111111" />
+    <TextView
+        android:layout_below="@+id/tv_count"
+        android:id="@+id/tv_path"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/iv_pic"
+        android:maxLines="1"
+        tools:text="111111111111111111111111111111" />
+</RelativeLayout>

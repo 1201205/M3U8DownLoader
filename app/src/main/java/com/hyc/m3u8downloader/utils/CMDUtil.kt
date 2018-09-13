@@ -50,7 +50,12 @@ class CMDUtil private constructor() {
     fun canUseCMD() = !TextUtils.isEmpty(absFilePath)
     fun executeMerge(configPath: String, targetPath: String) {
         Runtime.getRuntime().exec("$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
-        Log.e("cmd","$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
+        Log.e("cmd", "$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
     }
 
+    fun exeThumb(mediaPath: String, targetPath: String, width: Int, height: Int, time: Float) {
+        Log.e("hyc-cmd", "start--" + absFilePath)
+        Runtime.getRuntime().exec("$absFilePath -i $mediaPath -vframes 1 -y -f image2 -t 0.5 -s $width*$height $targetPath")
+        Log.e("hyc-cmd", "end--")
+    }
 }
