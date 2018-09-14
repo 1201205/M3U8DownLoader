@@ -3,7 +3,9 @@ package com.hyc.m3u8downloader
 import android.annotation.SuppressLint
 import android.text.TextUtils
 import android.util.Log
+import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.utils.MD5Util
+import com.hyc.m3u8downloader.utils.rootPath
 import okhttp3.*
 import java.io.File
 import java.io.FileOutputStream
@@ -11,17 +13,12 @@ import java.io.IOException
 import java.io.InputStream
 
 class FileDownloader {
-    var mClient: OkHttpClient = OkHttpClient()
-    private var mParentPath: String?=null
-    var mRedirect = 0
-    var mFileArray = ArrayList<String>()//目的为了删除多余的文件
+    private var mClient: OkHttpClient = OkHttpClient()
+    private var mRedirect = 0
+    var mItem: MediaItem? = null
     @SuppressLint("SdCardPath")
     fun downLoad(url: String, callBack: DownloadCallBack) {
-        if (TextUtils.isEmpty(mParentPath)) {
-            mParentPath = "/sdcard/m3u8/" + MD5Util.crypt(url)
-        }
-        mFileArray.add(mParentPath!!)
-        File(mParentPath).mkdirs()
+        File(mItem!!.parentPath).mkdirs()
         val path = getFilePath()
         val file = File(path)
         file.deleteOnExit()
@@ -30,7 +27,17 @@ class FileDownloader {
         downLoad(url, path, callBack)
         mRedirect++
     }
-    private fun getFilePath(): String = "$mParentPath/$mRedirect.m3u8"
+
+    fun download(item: MediaItem, callBack: DownloadCallBack) {
+        if (TextUtils.isEmpty(item.url)) {
+            return
+        }
+        mItem = item
+        mItem!!.parentPath = rootPath + MD5Util.crypt(item.url)
+        downLoad(item.url!!, callBack)
+    }
+
+    private fun getFilePath(): String = "${mItem!!.parentPath}/$mRedirect.m3u8"
 
     private fun onDownloadSuccess() {
         Log.e("file-downloader", "onDownloadSuccess")
@@ -76,28 +83,28 @@ class FileDownloader {
                             callBack.onDownloadSuccess(url)
                             M3u8FileParser().parse(url, file, object : ParseCallBack {
                                 override fun onNeedDownLoad(url: String) {
-                                    downLoad(url, object : DownloadCallBack {
-                                        override fun onDownloadSuccess(url: String) {
-                                        }
-
-                                        override fun onDownloadFailed(url: String) {
-                                        }
-                                    })
+                                    downLoad(url, callBack)
                                 }
 
                                 override fun onParseFailed(errorLog: String) {
                                 }
 
                                 override fun onParseSuccess(list: List<String>) {
-                                    var downloader = MediaDownloader()
-                                    downloader.download(list, File(path).parentFile.absolutePath, object : MediaMergeCallback {
-                                        override fun onSuccess() {
-                                            onDownloadSuccess()
-                                        }
+                                    mItem?.let {item->
+                                        item.state = 1
+                                        item.tsUrls = list
+                                        item.notifyChanged()
+                                        var downloader = MediaDownloader()
+                                        downloader.download(item, File(path).parentFile.absolutePath, object : MediaMergeCallback {
+                                            override fun onSuccess() {
+                                                onDownloadSuccess()
+                                            }
 
-                                        override fun onFailed() {
-                                        }
-                                    })
+                                            override fun onFailed() {
+                                            }
+                                        })
+                                    }
+
                                 }
                             })
                         }

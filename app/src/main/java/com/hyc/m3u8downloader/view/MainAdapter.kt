@@ -9,10 +9,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.model.MediaItem
-import kotlinx.android.synthetic.main.item_main.view.*
+import java.util.ArrayList
 
-class MainAdapter(items: List<MediaItem>) : RecyclerView.Adapter<MainAdapter.ViewHolder>() {
-    var mItems: List<MediaItem> = items
+class MainAdapter(items: ArrayList<MediaItem>) : RecyclerView.Adapter<MainAdapter.ViewHolder>() {
+    private var mItems: ArrayList<MediaItem> = items
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_main, parent, false))
@@ -22,10 +22,17 @@ class MainAdapter(items: List<MediaItem>) : RecyclerView.Adapter<MainAdapter.Vie
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = mItems[position]
-        holder.tvName.text = item.name
-        holder.tvPath.text = item.mp4Path
+        item.index = position
+        holder.tvName.text = "当前状态："+item.state
+        holder.tvPath.text = item.parentPath
+        holder.tvCount.text="下载数量"+item.downloadedCount
     }
 
+    fun addItem(item: MediaItem) {
+        val size = mItems.size
+        mItems.add(item)
+        notifyItemChanged(size)
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var tvName: TextView = view.findViewById(R.id.tv_name)

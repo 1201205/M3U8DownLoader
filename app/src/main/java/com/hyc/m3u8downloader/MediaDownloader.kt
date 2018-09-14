@@ -3,6 +3,7 @@ package com.hyc.m3u8downloader
 import android.support.v4.util.SparseArrayCompat
 import android.text.TextUtils
 import android.util.Log
+import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.utils.CMDUtil
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -31,6 +32,7 @@ class MediaDownloader : Thread() {
     var isDownloading = false
     private var lock: MultLock? = null
     var list: List<String>? = null
+   lateinit var mItem: MediaItem
     var copyList: ArrayList<String> = ArrayList()
     var path: String? = null
     var file: File? = null
@@ -44,6 +46,8 @@ class MediaDownloader : Thread() {
 
         override fun onFileDownloadSuccess(url: String) {
             downloadingList.remove(url)
+            mItem.downloadedCount++
+            mItem.notifyChanged()
             lock!!.unlock()
         }
 
@@ -100,19 +104,17 @@ class MediaDownloader : Thread() {
                                 Log.d("media_downloader", " the $key file download failed  it's size = $value but now $length")
                                 break
                             }
-
                         }
                     }
                     lock!!.unlock()
                 }
-
             }
             writer.flush()
             fw.flush()
             writer.close()
             fw.close()
             CMDUtil.instance.executeMerge(file!!.absolutePath, "$path/main.mp4")
-            Log.e("hyc-media","success")
+            Log.e("hyc-media", "success")
             mediaCallback.onSuccess()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -141,7 +143,7 @@ class MediaDownloader : Thread() {
         return this
     }
 
-    fun download(list: List<String>, path: String, callback: FileDownloader.MediaMergeCallback) {
+    fun download(item: MediaItem, path: String, callback: FileDownloader.MediaMergeCallback) {
         mediaCallback = callback
         if (this.list != null) {
             throw IllegalStateException("the current downloader is downloading")
@@ -153,9 +155,10 @@ class MediaDownloader : Thread() {
             client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
         }
         lock = MultLock(maxThreadCount)
-        copyList.addAll(list)
+        copyList.addAll(item.tsUrls!!)
         isDownloading = true
-        this.list = list
+        this.list = item.tsUrls!!
+        mItem=item
         this.path = path
         file = File(path + "/0.txt").apply {
             this.deleteOnExit()
