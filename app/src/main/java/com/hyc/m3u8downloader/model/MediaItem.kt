@@ -9,7 +9,7 @@ import org.greenrobot.eventbus.EventBus
 
 @Entity
 class MediaItem {
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey()
     var id: Long? = null
     var name: String? = null//用户输入名称
     var url: String? = null//用户输入地址
@@ -28,6 +28,7 @@ class MediaItem {
     }
     fun notifyChanged(){
         EventBus.getDefault().post(ItemChangeEvent(index))
+        MyDatabase.getInstance().getMediaItemDao().updateMedia(this)
     }
 //    @Relation(parentColumn = "id", entityColumn = "media_id")
 //    var tsFiles: ArrayList<TSItem>? = null

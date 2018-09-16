@@ -10,6 +10,7 @@ import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.ActivityCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SimpleItemAnimator
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -36,10 +37,10 @@ import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), MediaController {
     override fun createNewMedia(url: String, name: String) {
-        val item=MediaItem()
-        item.url=url
-        item.parentPath= rootPath + MD5Util.crypt(item.url)
-        item.state=0
+        val item = MediaItem()
+        item.url = url
+        item.parentPath = rootPath + MD5Util.crypt(item.url)
+        item.state = 0
         mAdapter.addItem(item)
         FileDownloader().download(item, object : DownloadCallBack {
             override fun onDownloadSuccess(url: String) {
@@ -56,10 +57,11 @@ class MainActivity : AppCompatActivity(), MediaController {
     override fun resumeAll() {
     }
 
+    lateinit var item: MediaItem
     private val SDCARD_PERMISSION_R = Manifest.permission.READ_EXTERNAL_STORAGE
     private val SDCARD_PERMISSION_W = Manifest.permission.WRITE_EXTERNAL_STORAGE
     val mRequestCode = 100
-    lateinit var mAdapter:MainAdapter
+    lateinit var mAdapter: MainAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         EventBus.getDefault().register(this)
@@ -87,28 +89,33 @@ class MainActivity : AppCompatActivity(), MediaController {
 //                }
 //            })
 //        }
-        var item = MediaItem()
+        item = MediaItem()
         item.name = "1"
+//        MyDatabase.getInstance().getMediaItemDao().insertMedia(item)
+        Log.e("hyc--oo", "----" + item.id)
 //        item.id=1
-        var list = ArrayList<TSItem>()
-        for (i in 1..10) {
-            var tsItem = TSItem()
-//            tsItem.mediaId=1
-            tsItem.path = "aaaa" + i
-            list.add(tsItem)
-        }
-        Observable.create<Any> { MyDatabase.getInstance().getMediaItemDao().insertMedia(item) }.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe()
-        MyDatabase.getInstance().getMediaItemDao().loadLastItem().subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe { it ->
-            it?.let {
-                Log.e("hyc--oo", it.toString())
-            }
-        }
+//        var list = ArrayList<TSItem>()
+//        for (i in 1..10) {
+//            var tsItem = TSItem()
+////            tsItem.mediaId=1
+//            tsItem.path = "aaaa" + i
+//            list.add(tsItem)
+//        }
+//        Observable.create<Any> { MyDatabase.getInstance().getMediaItemDao().insertMedia(item) }.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe({
+//            Log.e("hyc--oo", "----" + item.id)
+//        })
+//        MyDatabase.getInstance().getMediaItemDao().loadLastItem().subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe { it ->
+//            it?.let {
+//                Log.e("hyc--oo", it.toString())
+//            }
+//        }
         findViewById<RecyclerView>(R.id.rv_content).let {
-            var list=java.util.ArrayList<MediaItem>()
-            mAdapter=MainAdapter(list)
+            var list = java.util.ArrayList<MediaItem>()
+            mAdapter = MainAdapter(list)
             it.adapter = mAdapter
             var manager = LinearLayoutManager(this)
             it.layoutManager = manager
+            (it.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         }
 
         findViewById<FloatingActionButton>(R.id.fab_menu).setOnClickListener { showBottomMenu() }
@@ -118,10 +125,12 @@ class MainActivity : AppCompatActivity(), MediaController {
 //            }
 //        }).start()
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onChange(event: ItemChangeEvent){
+    fun onChange(event: ItemChangeEvent) {
         mAdapter.notifyItemChanged(event.index)
     }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (mRequestCode == requestCode) {
@@ -132,6 +141,12 @@ class MainActivity : AppCompatActivity(), MediaController {
                 finish()
             }
         }
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.e("hyc--oo", "----" + item.id)
 
     }
 

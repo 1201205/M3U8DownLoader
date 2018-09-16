@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
+import com.hyc.m3u8downloader.model.MediaItemDao
+import com.hyc.m3u8downloader.model.MyDatabase
 import com.hyc.m3u8downloader.utils.MD5Util
 import com.hyc.m3u8downloader.utils.rootPath
 import okhttp3.*
@@ -34,6 +36,7 @@ class FileDownloader {
         }
         mItem = item
         mItem!!.parentPath = rootPath + MD5Util.crypt(item.url)
+        MediaItemDao.getIDAndInsert(mItem!!)
         downLoad(item.url!!, callBack)
     }
 
