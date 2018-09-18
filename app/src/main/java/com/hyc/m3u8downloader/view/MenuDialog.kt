@@ -26,7 +26,7 @@ class MenuDialog(context: Context,controller: MediaController) : BottomSheetDial
         builder.setView(editText)
         builder.setNegativeButton("取消", null)
         builder.setPositiveButton("确定") { _, _ ->
-            mController.createNewMedia(editText.text.toString(),"")
+//            mController.createNewMedia(editText.text.toString(),"")
         }
         builder.show()
 

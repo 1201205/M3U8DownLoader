@@ -1,24 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <android.support.v7.widget.RecyclerView
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:id="@+id/rv_content"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="controller"
+            type="com.hyc.m3u8downloader.view.MediaController"/>
+    </data>
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-    <android.support.design.widget.FloatingActionButton
-        app:layout_behavior="com.hyc.m3u8downloader.view.ScrollAwareFABBehavior2"
-        android:id="@+id/fab_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|bottom"
-        android:layout_marginBottom="20dp"
-        android:layout_marginRight="20dp"
-        android:src="@mipmap/fab_add"
-        app:backgroundTint="@color/colorPrimary" />
-</android.support.design.widget.CoordinatorLayout>
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/activity_main"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MainActivity">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_menu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                app:backgroundTint="@color/colorPrimary"
+                app:fabSize="normal"
+                android:onClick="@{controller::onFabClicked}"
+                app:layout_constraintBottom_toBottomOf="@+id/activity_main"
+                app:layout_constraintRight_toRightOf="@+id/activity_main"
+                app:srcCompat="@mipmap/fab_add" />
+
+            <LinearLayout
+                android:id="@+id/ll_create"
+                style="@style/MainMenu"
+                app:layout_constraintBottom_toTopOf="@+id/ll_delete_all"
+                app:layout_constraintRight_toRightOf="@+id/activity_main">
+
+                <TextView
+                    style="@style/MainMenuText"
+                    android:text="@string/create_download" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fab_create"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:backgroundTint="@color/colorPrimary"
+                    app:elevation="1dp"
+                    app:fabSize="mini"
+                    android:onClick="@{controller::onCreateNewMediaClicked}"
+                    app:srcCompat="@mipmap/ico_create" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_delete_all"
+                style="@style/MainMenu"
+                app:layout_constraintBottom_toTopOf="@+id/ll_start_all"
+                app:layout_constraintRight_toRightOf="@+id/activity_main">
+
+                <TextView
+                    style="@style/MainMenuText"
+                    android:text="@string/delete_all" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fab_delete"
+                    android:onClick="@{controller::onDeleteAllClicked}"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:backgroundTint="@color/colorPrimary"
+                    app:elevation="1dp"
+                    app:fabSize="mini"
+                    app:srcCompat="@mipmap/ico_delete_all" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_start_all"
+                style="@style/MainMenu"
+                app:layout_constraintBottom_toTopOf="@+id/ll_pause_all"
+                app:layout_constraintRight_toRightOf="@+id/activity_main">
+
+                <TextView
+                    style="@style/MainMenuText"
+                    android:text="@string/start_all" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fab_start"
+                    android:onClick="@{controller::onResumeAllClicked}"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:backgroundTint="@color/colorPrimary"
+                    app:elevation="1dp"
+                    app:fabSize="mini"
+                    app:srcCompat="@mipmap/ico_resume_all" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_pause_all"
+                style="@style/MainMenu"
+                app:layout_constraintBottom_toTopOf="@+id/fab_menu"
+                app:layout_constraintRight_toRightOf="@+id/activity_main">
+
+                <TextView
+                    style="@style/MainMenuText"
+                    android:text="@string/pause_all" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fab_pause"
+                    android:onClick="@{controller::onPauseAllClicked}"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:backgroundTint="@color/colorPrimary"
+                    app:elevation="1dp"
+                    app:fabSize="mini"
+                    app:srcCompat="@mipmap/ico_pause_all" />
+            </LinearLayout>
+
+        </android.support.constraint.ConstraintLayout>
+    </android.support.design.widget.CoordinatorLayout>
+</layout>
