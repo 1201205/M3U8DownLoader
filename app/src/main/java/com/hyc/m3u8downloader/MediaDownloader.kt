@@ -1,5 +1,6 @@
 package com.hyc.m3u8downloader
 
+import android.arch.lifecycle.MutableLiveData
 import android.support.v4.util.SparseArrayCompat
 import android.text.TextUtils
 import android.util.Log
@@ -28,11 +29,11 @@ class MediaDownloader : Thread() {
      */
     var executor: ExecutorService? = null
     var client: OkHttpClient? = null
-    var maxThreadCount: Int = 5
+    var maxThreadCount: Int = 12
     var isDownloading = false
     private var lock: MultLock? = null
     var list: List<String>? = null
-   lateinit var mItem: MediaItem
+   lateinit var mItem: MutableLiveData<MediaItem>
     var copyList: ArrayList<String> = ArrayList()
     var path: String? = null
     var file: File? = null
@@ -46,8 +47,9 @@ class MediaDownloader : Thread() {
 
         override fun onFileDownloadSuccess(url: String) {
             downloadingList.remove(url)
-            mItem.downloadedCount++
-            mItem.notifyChanged()
+            var value=mItem.value
+            value!!.downloadedCount++
+            mItem.postValue(value)
             lock!!.unlock()
         }
 
@@ -143,7 +145,7 @@ class MediaDownloader : Thread() {
         return this
     }
 
-    fun download(item: MediaItem, path: String, callback: FileDownloader.MediaMergeCallback) {
+    fun download(item: MutableLiveData<MediaItem>, path: String, callback: FileDownloader.MediaMergeCallback) {
         mediaCallback = callback
         if (this.list != null) {
             throw IllegalStateException("the current downloader is downloading")
@@ -155,9 +157,9 @@ class MediaDownloader : Thread() {
             client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
         }
         lock = MultLock(maxThreadCount)
-        copyList.addAll(item.tsUrls!!)
+        copyList.addAll(item.value!!.tsUrls!!)
         isDownloading = true
-        this.list = item.tsUrls!!
+        this.list = item.value!!.tsUrls!!
         mItem=item
         this.path = path
         file = File(path + "/0.txt").apply {

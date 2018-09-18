@@ -29,6 +29,5 @@ class MenuDialog(context: Context,controller: MediaController) : BottomSheetDial
 //            mController.createNewMedia(editText.text.toString(),"")
         }
         builder.show()
-
     }
 }

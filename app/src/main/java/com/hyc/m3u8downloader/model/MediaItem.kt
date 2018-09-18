@@ -22,7 +22,8 @@ class MediaItem {
     var tsUrls: List<String>? = null
     @Ignore
     var index: Int = 0//当前显示的位置
-
+    @Ignore
+    var list:List<TSItem>?=null
     override fun toString(): String {
         return "MediaItem(id=$id, name=$name, url=$url, state=$state, mp4Path=$mp4Path)"
     }

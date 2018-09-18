@@ -1,6 +1,7 @@
 package com.hyc.m3u8downloader
 
 import android.Manifest
+import android.arch.lifecycle.ViewModelProviders
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.os.Build
@@ -10,6 +11,7 @@ import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.ActivityCompat
 import android.support.v4.view.ViewCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SimpleItemAnimator
@@ -21,15 +23,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import com.hyc.m3u8downloader.databinding.ActivityMainBinding
-import com.hyc.m3u8downloader.model.ItemChangeEvent
-import com.hyc.m3u8downloader.model.MediaItem
-import com.hyc.m3u8downloader.model.MyDatabase
-import com.hyc.m3u8downloader.model.TSItem
+import com.hyc.m3u8downloader.model.*
 import com.hyc.m3u8downloader.utils.CMDUtil
 import com.hyc.m3u8downloader.utils.ItemDelegate
 import com.hyc.m3u8downloader.utils.MD5Util
 import com.hyc.m3u8downloader.utils.rootPath
 import com.hyc.m3u8downloader.view.MainAdapter
+import com.hyc.m3u8downloader.view.MainAdapter2
 import com.hyc.m3u8downloader.view.MediaController
 import com.hyc.m3u8downloader.view.MenuDialog
 import io.reactivex.Observable
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity(), MediaController {
 
     override fun onCreateNewMediaClicked(view: View) {
         Log.e("hyc-fab", "createNewMedia")
-
+        showAddDialog()
 //        val item = MediaItem()
 //        item.url = url
 //        item.parentPath = rootPath + MD5Util.crypt(item.url)
@@ -69,7 +69,6 @@ class MainActivity : AppCompatActivity(), MediaController {
 //            }
 //        })
     }
-
     override fun onPauseAllClicked(view: View) {
         Log.e("hyc-fab", "pauseAll")
 
@@ -83,7 +82,7 @@ class MainActivity : AppCompatActivity(), MediaController {
     private val SDCARD_PERMISSION_R = Manifest.permission.READ_EXTERNAL_STORAGE
     private val SDCARD_PERMISSION_W = Manifest.permission.WRITE_EXTERNAL_STORAGE
     private val mRequestCode = 100
-    private lateinit var mAdapter: MainAdapter
+    private lateinit var mAdapter: MainAdapter2
     private lateinit var mBinding: ActivityMainBinding
     private val delayTime = 80L
     private var menuShowing = false
@@ -92,10 +91,14 @@ class MainActivity : AppCompatActivity(), MediaController {
         EventBus.getDefault().register(this)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         mBinding.controller = this
+        mBinding.model= ViewModelProviders.of(this).get(MainViewModel::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ActivityCompat.requestPermissions(this@MainActivity,
                     arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W), 100)
         }
+        mBinding.model!!.loadingFormDB(this)
+        mBinding.setLifecycleOwner(this)
+
 //        Log.e("hyc-kk", kk.test.toString() + "---")
 //        FileDownloader().downLoad("http://gncdn.wb699.com/20180831/Avl99908/index.m3u8","/sdcard/1.m3u8",object :DownloadCallBack{
 //            override fun onDownloadSuccess(url: String) {
@@ -135,9 +138,6 @@ class MainActivity : AppCompatActivity(), MediaController {
 //            }
 //        }
         findViewById<RecyclerView>(R.id.rv_content).let {
-            var list = java.util.ArrayList<MediaItem>()
-            mAdapter = MainAdapter(list)
-            it.adapter = mAdapter
             var manager = LinearLayoutManager(this)
             it.layoutManager = manager
             (it.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
@@ -177,6 +177,19 @@ class MainActivity : AppCompatActivity(), MediaController {
         mBinding.llDeleteAll.animate().setDuration(300).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime).start()
         mBinding.llPauseAll.animate().setDuration(300).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 3).start()
 
+    }
+
+    private fun showAddDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("新建下载")
+        builder.setMessage("输入m3u8下载地址")
+        val editText=EditText(this)
+        builder.setView(editText)
+        builder.setNegativeButton("取消", null)
+        builder.setPositiveButton("确定") { _, _ ->
+            mBinding.model!!.createItem("",editText.text.toString())
+        }
+        builder.show()
     }
 
 }

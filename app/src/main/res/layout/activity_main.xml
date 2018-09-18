@@ -6,6 +6,9 @@
         <variable
             name="controller"
             type="com.hyc.m3u8downloader.view.MediaController"/>
+        <variable
+            name="model"
+            type="com.hyc.m3u8downloader.model.MainViewModel"/>
     </data>
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -13,6 +16,7 @@
         tools:context=".MainActivity">
 
         <android.support.v7.widget.RecyclerView
+            android:adapter="@{model.adapter}"
             android:id="@+id/rv_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

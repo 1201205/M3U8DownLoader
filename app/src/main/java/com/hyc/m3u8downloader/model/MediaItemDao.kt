@@ -15,7 +15,8 @@ interface MediaItemDao {
     //todo find how to use the one to many
     @Query("SELECT * from MediaItem")
     fun loadAllMedia(): List<MediaWithTSFiles>
-
+    @Query("SELECT * from MediaItem")
+    fun loadAllMediaAync(): Maybe<List<MediaWithTSFiles>>
     @Insert
     fun insertMediaAndTSFiles(item: MediaItem, list: List<TSItem>)
 
@@ -53,6 +54,6 @@ interface MediaItemDao {
                 MyDatabase.getInstance().getMediaItemDao().updateMedia(item)
             }.subscribeOn(Schedulers.newThread()).subscribe()
         }
-
+        fun loadAllMediaAync()=MyDatabase.getInstance().getMediaItemDao().loadAllMediaAync()
     }
 }

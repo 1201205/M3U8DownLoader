@@ -1,6 +1,7 @@
 package com.hyc.m3u8downloader
 
 import android.annotation.SuppressLint
+import android.arch.lifecycle.MutableLiveData
 import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
@@ -17,10 +18,10 @@ import java.io.InputStream
 class FileDownloader {
     private var mClient: OkHttpClient = OkHttpClient()
     private var mRedirect = 0
-    var mItem: MediaItem? = null
+    var mItem: MutableLiveData<MediaItem>? = null
     @SuppressLint("SdCardPath")
     fun downLoad(url: String, callBack: DownloadCallBack) {
-        File(mItem!!.parentPath).mkdirs()
+        File(mItem!!.value!!.parentPath).mkdirs()
         val path = getFilePath()
         val file = File(path)
         file.deleteOnExit()
@@ -30,17 +31,20 @@ class FileDownloader {
         mRedirect++
     }
 
-    fun download(item: MediaItem, callBack: DownloadCallBack) {
-        if (TextUtils.isEmpty(item.url)) {
-            return
+    fun download(item: MutableLiveData<MediaItem>, callBack: DownloadCallBack) {
+        item.value?.let {
+            if (TextUtils.isEmpty(it.url)) {
+                return
+            }
+            mItem = item
+            it.parentPath = rootPath + MD5Util.crypt(it.url)
+            MediaItemDao.getIDAndInsert(it!!)
+            downLoad(it.url!!, callBack)
         }
-        mItem = item
-        mItem!!.parentPath = rootPath + MD5Util.crypt(item.url)
-        MediaItemDao.getIDAndInsert(mItem!!)
-        downLoad(item.url!!, callBack)
+
     }
 
-    private fun getFilePath(): String = "${mItem!!.parentPath}/$mRedirect.m3u8"
+    private fun getFilePath(): String = "${mItem!!.value!!.parentPath}/$mRedirect.m3u8"
 
     private fun onDownloadSuccess() {
         Log.e("file-downloader", "onDownloadSuccess")
@@ -93,12 +97,12 @@ class FileDownloader {
                                 }
 
                                 override fun onParseSuccess(list: List<String>) {
-                                    mItem?.let {item->
+                                    mItem?.value?.let { item ->
                                         item.state = 1
                                         item.tsUrls = list
-                                        item.notifyChanged()
+                                        mItem!!.postValue(item)
                                         var downloader = MediaDownloader()
-                                        downloader.download(item, File(path).parentFile.absolutePath, object : MediaMergeCallback {
+                                        downloader.download(mItem!!, File(path).parentFile.absolutePath, object : MediaMergeCallback {
                                             override fun onSuccess() {
                                                 onDownloadSuccess()
                                             }
