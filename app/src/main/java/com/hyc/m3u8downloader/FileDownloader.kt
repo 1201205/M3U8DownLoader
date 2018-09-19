@@ -7,6 +7,7 @@ import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.model.MediaItemDao
 import com.hyc.m3u8downloader.model.MyDatabase
+import com.hyc.m3u8downloader.model.TSItem
 import com.hyc.m3u8downloader.utils.MD5Util
 import com.hyc.m3u8downloader.utils.rootPath
 import okhttp3.*
@@ -16,9 +17,21 @@ import java.io.IOException
 import java.io.InputStream
 
 class FileDownloader {
+    /**
+     * 如何暂停下载？？
+     * 1.确定下载过程中的当前状态：有下载m3u8和解析文件和下载ts文件3种状态
+     * 2.针对每个状态做出处理：下载m3u8就直接取消，解析文件就等待解析完毕，下载ts就发送消息结束下载循环
+     */
     private var mClient: OkHttpClient = OkHttpClient()
     private var mRedirect = 0
+    private val INIT = 0
+    private val DOWNLOADING_M3U8 = 1
+    private val PARSING = 2
+    private val DOWNLOADING_TS = 3
+    private var currentState = INIT
+    private var stopped = false
     var mItem: MutableLiveData<MediaItem>? = null
+    private var downloader: MediaDownloader? = null
     @SuppressLint("SdCardPath")
     fun downLoad(url: String, callBack: DownloadCallBack) {
         File(mItem!!.value!!.parentPath).mkdirs()
@@ -33,13 +46,30 @@ class FileDownloader {
 
     fun download(item: MutableLiveData<MediaItem>, callBack: DownloadCallBack) {
         item.value?.let {
-            if (TextUtils.isEmpty(it.url)) {
-                return
+            if (it.state == 0||it.list==null) {
+                if (TextUtils.isEmpty(it.url)) {
+                    return
+                }
+                mItem = item
+                it.parentPath = rootPath + MD5Util.crypt(it.url)
+                MediaItemDao.getIDAndInsert(it!!)
+                downLoad(it.url!!, callBack)
+            } else {
+                it.state = 1
+                mItem!!.postValue(it)
+                currentState = DOWNLOADING_TS
+                downloader = MediaDownloader()
+                downloader!!.download(mItem!!, object : MediaMergeCallback {
+                    override fun onSuccess() {
+                        onDownloadSuccess()
+                    }
+
+                    override fun onFailed() {
+                    }
+                })
+
             }
-            mItem = item
-            it.parentPath = rootPath + MD5Util.crypt(it.url)
-            MediaItemDao.getIDAndInsert(it!!)
-            downLoad(it.url!!, callBack)
+
         }
 
     }
@@ -53,6 +83,10 @@ class FileDownloader {
 //        }
     }
 
+    fun isThisDownloading(item: MutableLiveData<MediaItem>): Boolean {
+        return mItem == item
+    }
+
     private fun deleteFile(file: File) {
         //目前先订为mp4
 //        if (file.isFile && !file.absolutePath.endsWith(".mp4")) {
@@ -62,6 +96,14 @@ class FileDownloader {
 //                deleteFile(it)
 //            }
 //        }
+    }
+
+
+    fun stopDownload() {
+        when (currentState) {
+            DOWNLOADING_M3U8, PARSING -> stopped = true
+            DOWNLOADING_TS -> downloader?.let { it.stopDownload() }
+        }
     }
 
     private fun downLoad(url: String, path: String, callBack: DownloadCallBack) {
@@ -80,7 +122,7 @@ class FileDownloader {
                             fos = FileOutputStream(file)
                             var sum = 0L
                             var len = 0
-                            while (inputStream.read(buf).apply { len = this } != -1) {
+                            while (!stopped && inputStream.read(buf).apply { len = this } != -1) {
                                 fos.write(buf, 0, len)
                                 sum += len
                                 Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
@@ -88,21 +130,23 @@ class FileDownloader {
                             Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
                             fos.flush()
                             callBack.onDownloadSuccess(url)
-                            M3u8FileParser().parse(url, file, object : ParseCallBack {
-                                override fun onNeedDownLoad(url: String) {
-                                    downLoad(url, callBack)
-                                }
-
-                                override fun onParseFailed(errorLog: String) {
-                                }
-
-                                override fun onParseSuccess(list: List<String>) {
+                            currentState = PARSING
+                            M3u8FileParser().parse(mItem!!.value!!.id!!,url, file, object : ParseCallBack {
+                                override fun onParseSuccess(list: List<TSItem>) {
                                     mItem?.value?.let { item ->
-                                        item.state = 1
-                                        item.tsUrls = list
+                                        if (stopped) {
+                                            item.state = 2
+                                        } else {
+                                            item.state = 1
+                                        }
+                                        MediaItemDao.insertTSItems(list)
                                         mItem!!.postValue(item)
-                                        var downloader = MediaDownloader()
-                                        downloader.download(mItem!!, File(path).parentFile.absolutePath, object : MediaMergeCallback {
+                                        if (stopped) {
+                                            return
+                                        }
+                                        currentState = DOWNLOADING_TS
+                                        downloader = MediaDownloader()
+                                        downloader!!.download(mItem!!, object : MediaMergeCallback {
                                             override fun onSuccess() {
                                                 onDownloadSuccess()
                                             }
@@ -111,7 +155,17 @@ class FileDownloader {
                                             }
                                         })
                                     }
+                                }
 
+                                override fun onNeedDownLoad(url: String) {
+                                    currentState = DOWNLOADING_M3U8
+                                    if (stopped) {
+                                        return
+                                    }
+                                    downLoad(url, callBack)
+                                }
+
+                                override fun onParseFailed(errorLog: String) {
                                 }
                             })
                         }

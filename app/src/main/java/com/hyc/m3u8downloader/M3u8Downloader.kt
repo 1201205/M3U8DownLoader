@@ -1,16 +1,18 @@
 package com.hyc.m3u8downloader
 
 import android.util.Log
+import com.hyc.m3u8downloader.model.TSItem
 import okhttp3.Call
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class M3u8Downloader(var index: Int, private val path: String, private val lock: DownloadCallback, private val call: Call) : Runnable {
+class M3u8Downloader(private val tsFile: TSItem, private val path: String, private val lock: DownloadCallback, private val call: Call) : Runnable {
 
     override fun run() {
         try {
+            var index: Int = tsFile.index!!
             call.execute().let { response ->
                 var inputStream: InputStream
                 var buf = ByteArray(2048)
@@ -19,7 +21,8 @@ class M3u8Downloader(var index: Int, private val path: String, private val lock:
                     response.body()?.let { rs ->
                         inputStream = rs.byteStream()
                         val total = rs.contentLength()
-                        lock.onGetContentLength(index, total)
+                        tsFile.total = total
+                        lock.onGetContentLength(tsFile)
                         var file = File(path)
                         fos = FileOutputStream(file)
                         var sum = 0L
@@ -29,18 +32,18 @@ class M3u8Downloader(var index: Int, private val path: String, private val lock:
                             sum += len
                         }
                         Log.e("hyc-progress", "total:$total---current:$sum+++++$len+++++$index")
-                        lock.onFileDownloadSuccess(call.request().url().toString())
+                        lock.onFileDownloadSuccess(tsFile)
                     }
                 } catch (e: Exception) {
-                    lock.onFileDownloadFailed(call.request().url().toString(), index)
+                    lock.onFileDownloadFailed(tsFile)
                     Log.e("hyc-progress", "need ReDownload )" + call.request().url().toString())
                     e.printStackTrace()
                 }
                 fos?.flush()
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.e("hyc-progress", "need ReDownload --outer )" + call.request().url().toString())
-            lock.onFileDownloadFailed(call.request().url().toString(), index)
+            lock.onFileDownloadFailed(tsFile)
             e.printStackTrace()
         }
 
@@ -51,8 +54,8 @@ class M3u8Downloader(var index: Int, private val path: String, private val lock:
     }
 
     interface DownloadCallback {
-        fun onFileDownloadSuccess(url: String)
-        fun onGetContentLength(index: Int, length: Long)
-        fun onFileDownloadFailed(url: String, index: Int)
+        fun onFileDownloadSuccess(tsFile: TSItem)
+        fun onGetContentLength(tsFile: TSItem)
+        fun onFileDownloadFailed(tsFile: TSItem)
     }
 }

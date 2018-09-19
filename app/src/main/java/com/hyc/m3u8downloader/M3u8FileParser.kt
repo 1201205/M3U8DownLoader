@@ -3,6 +3,7 @@ package com.hyc.m3u8downloader
 import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
+import com.hyc.m3u8downloader.model.TSItem
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -10,11 +11,11 @@ import java.io.InputStreamReader
 import java.util.ArrayList
 
 class M3u8FileParser {
-    fun parse(url: String, file: File, callBack: ParseCallBack) {
+    fun parse(id: Long, url: String, file: File, callBack: ParseCallBack) {
         val uri = Uri.parse(url)
         //目前默认使用http  因为https 很慢
-        val host =  "http://${uri.host}"
-        val more = (url.replace(uri.lastPathSegment, "")).replace("https://","http://")
+        val host = "http://${uri.host}"
+        val more = (url.replace(uri.lastPathSegment, "")).replace("https://", "http://")
         val reader = InputStreamReader(FileInputStream(file))
         val br = BufferedReader(reader)
         var line: String? = ""
@@ -34,7 +35,8 @@ class M3u8FileParser {
 
         if (line.startsWith("#EXT-X-VERSION") || line.startsWith("#EXT-X-TARGETDURATION") || line.startsWith("#EXT-X-MEDIA-SEQUENCE")) {
             var hasUrl = false
-            var list = ArrayList<String>()
+            var list = ArrayList<TSItem>()
+            var index = 0;
             while ((br.readLine().apply { line = this }) != null) {
                 Log.e("hyc-parse", line)
                 if (line!!.startsWith("#EXTINF")) {
@@ -44,13 +46,14 @@ class M3u8FileParser {
                 } else {
                     if (hasUrl) {
                         if (line!!.split("/").size > 1) {
-                            list.add(host + line)
+                            list.add(TSItem(index, host + line, id))
                             Log.d("hyc-parse", "add download url--(${host + line})")
                         } else {
-                            list.add(more + line)
+                            list.add(TSItem(index, more + line, id))
                             Log.d("hyc-parse", "add download url--(${more + line})")
                         }
                         hasUrl = false
+                        index++
                     }
                 }
             }

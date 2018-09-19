@@ -13,8 +13,18 @@ class TSItem {
     var index: Int? = null
     var path: String? = null
     var url: String? = null
+    var success: Boolean = false
+    var total: Long = 0
+
     @ColumnInfo(name = "media_id")
     var mediaId: Long? = null
+
+    constructor(index: Int?, url: String?, mediaId: Long?) {
+        this.index = index
+        this.url = url
+        this.mediaId = mediaId
+    }
+
 
     override fun toString(): String {
         return "TSItem(tsId=$tsId, index=$index, path=$path, url=$url, mediaId=$mediaId)"

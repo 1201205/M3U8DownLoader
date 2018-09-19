@@ -2,11 +2,11 @@ package com.hyc.m3u8downloader
 
 import android.arch.lifecycle.MutableLiveData
 import android.support.v4.util.SparseArrayCompat
-import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
+import com.hyc.m3u8downloader.model.MediaItemDao
+import com.hyc.m3u8downloader.model.TSItem
 import com.hyc.m3u8downloader.utils.CMDUtil
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.*
@@ -33,76 +33,157 @@ class MediaDownloader : Thread() {
     var isDownloading = false
     private var lock: MultLock? = null
     var list: List<String>? = null
-   lateinit var mItem: MutableLiveData<MediaItem>
+    lateinit var mItem: MutableLiveData<MediaItem>
     var copyList: ArrayList<String> = ArrayList()
     var path: String? = null
     var file: File? = null
-    var map = SparseArrayCompat<String>()
+    var map = SparseArrayCompat<TSItem>()
+    private var allTs = ArrayList<TSItem>()
+    var copyTSItems: ArrayList<TSItem> = ArrayList()
     var checkArray = SparseArrayCompat<Long>()
     lateinit var mediaCallback: FileDownloader.MediaMergeCallback
     private var callBack = object : M3u8Downloader.DownloadCallback {
-        override fun onGetContentLength(index: Int, length: Long) {
-            checkArray.put(index, length)
-        }
-
-        override fun onFileDownloadSuccess(url: String) {
-            downloadingList.remove(url)
-            var value=mItem.value
+        override fun onFileDownloadSuccess(tsFile: TSItem) {
+            downloadingTS.remove(tsFile)
+            var value = mItem.value
             value!!.downloadedCount++
             mItem.postValue(value)
+            tsFile.success = true
+            MediaItemDao.updateTS(tsFile)
             lock!!.unlock()
         }
 
-        override fun onFileDownloadFailed(url: String, index: Int) {
-            map.put(index, url)
-            downloadingList.remove(url)
-            lock!!.unlock()
+        override fun onGetContentLength(tsFile: TSItem) {
+            checkArray.put(tsFile.index!!, tsFile.total)
         }
 
+        override fun onFileDownloadFailed(tsFile: TSItem) {
+            map.put(tsFile.index!!, tsFile)
+            downloadingTS.remove(tsFile)
+            lock!!.unlock()
+        }
     }
     private var downloadingList: ArrayList<String> = ArrayList()
+    private var downloadingTS: ArrayList<TSItem> = ArrayList()
+
+//    override fun run() {
+//        var count = 0
+//        var fw = FileWriter(file)
+//        var writer = BufferedWriter(fw)
+//        try {
+//            while (isDownloading) {
+//                if (copyList.size == 0 && map.size() == 0 && checkArray.size() == 0) {
+//                    break
+//                }
+//                lock!!.lock()
+//                var url = getNextUrl()
+//                if (!TextUtils.isEmpty(url)) {
+//                    writer.write("file '$count.ts'\t\n")
+//                    val request = Request.Builder().url(url).build()
+//                    var call = client!!.newCall(request)
+//                    executor!!.execute(M3u8Downloader(count, getFilePath(count), callBack, call))
+//                    count++
+//                } else if (map.size() > 0) {
+//                    var key = map.keyAt(0)
+//                    var value = map[key]
+//                    val request = Request.Builder().url(value).build()
+//                    var call = client!!.newCall(request)
+//                    map.remove(key)
+//                    downloadingList.add(value)
+//                    executor!!.execute(M3u8Downloader(key, getFilePath(key), callBack, call))
+//                } else {
+//                    //检查下载
+//                    while (checkArray.size() > 0) {
+//                        var key = checkArray.keyAt(0)
+//                        var value = checkArray[key]
+//                        var file = File(getFilePath(key))
+//                        var length = file.length()
+//                        if (length == value) {
+//                            checkArray.remove(key)
+//                            Log.d("media_downloader", "check the $key file download success  it's size = $value")
+//                        } else {
+//                            if (downloadingList.contains(list!![key])) {
+//                                //等待当前下载完毕
+//                                Thread.sleep(100)
+//                                continue
+//                            } else {
+//                                map.put(key, list!![key])
+//                                Log.d("media_downloader", " the $key file download failed  it's size = $value but now $length")
+//                                break
+//                            }
+//                        }
+//                    }
+//                    lock!!.unlock()
+//                }
+//            }
+//            writer.flush()
+//            fw.flush()
+//            writer.close()
+//            fw.close()
+//            CMDUtil.instance.executeMerge(file!!.absolutePath, "$path/main.mp4")
+//            Log.e("hyc-media", "success")
+//            mediaCallback.onSuccess()
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            mediaCallback.onFailed()
+//        }
+//    }
+
+
     override fun run() {
+        mItem.value!!.list = MediaItemDao.loadAllTS(mItem.value!!).apply {
+            allTs.addAll(this)
+            copyTSItems.addAll(allTs)
+        }
         var count = 0
         var fw = FileWriter(file)
         var writer = BufferedWriter(fw)
         try {
             while (isDownloading) {
-                if (copyList.size == 0 && map.size() == 0 && checkArray.size() == 0) {
+                if (copyTSItems.size == 0 && map.size() == 0 && checkArray.size() == 0) {
                     break
                 }
                 lock!!.lock()
-                var url = getNextUrl()
-                if (!TextUtils.isEmpty(url)) {
+                var ts = getNextTS()
+                if (ts != null) {
                     writer.write("file '$count.ts'\t\n")
-                    val request = Request.Builder().url(url).build()
+                    if (ts.success) {
+                        downloadingTS.remove(ts)
+                        count++
+                        continue
+                    }
+                    val request = Request.Builder().url(ts.url!!).build()
                     var call = client!!.newCall(request)
-                    executor!!.execute(M3u8Downloader(count, getFilePath(count), callBack, call))
+                    executor!!.execute(M3u8Downloader(ts, getFilePath(count), callBack, call))
                     count++
                 } else if (map.size() > 0) {
                     var key = map.keyAt(0)
                     var value = map[key]
-                    val request = Request.Builder().url(value).build()
+                    val request = Request.Builder().url(value.url!!).build()
                     var call = client!!.newCall(request)
                     map.remove(key)
-                    downloadingList.add(value)
-                    executor!!.execute(M3u8Downloader(key, getFilePath(key), callBack, call))
+                    downloadingTS.add(value)
+                    executor!!.execute(M3u8Downloader(value, getFilePath(key), callBack, call))
                 } else {
                     //检查下载
                     while (checkArray.size() > 0) {
                         var key = checkArray.keyAt(0)
                         var value = checkArray[key]
+                        if (value == 0L) {
+                            value = allTs!![key].total
+                        }
                         var file = File(getFilePath(key))
                         var length = file.length()
                         if (length == value) {
                             checkArray.remove(key)
                             Log.d("media_downloader", "check the $key file download success  it's size = $value")
                         } else {
-                            if (downloadingList.contains(list!![key])) {
+                            if (downloadingTS.contains(allTs!![key])) {
                                 //等待当前下载完毕
                                 Thread.sleep(100)
                                 continue
                             } else {
-                                map.put(key, list!![key])
+                                map.put(key, allTs!![key])
                                 Log.d("media_downloader", " the $key file download failed  it's size = $value but now $length")
                                 break
                             }
@@ -122,8 +203,11 @@ class MediaDownloader : Thread() {
             e.printStackTrace()
             mediaCallback.onFailed()
         }
+    }
 
 
+    fun stopDownload() {
+        isDownloading = false
     }
 
     fun newInstance(): MediaDownloader {
@@ -160,13 +244,46 @@ class MediaDownloader : Thread() {
         copyList.addAll(item.value!!.tsUrls!!)
         isDownloading = true
         this.list = item.value!!.tsUrls!!
-        mItem=item
+        mItem = item
         this.path = path
         file = File(path + "/0.txt").apply {
             this.deleteOnExit()
             createNewFile()
         }
         start()
+    }
+
+    fun download(item: MutableLiveData<MediaItem>, callback: FileDownloader.MediaMergeCallback) {
+        mediaCallback = callback
+        if (this.list != null) {
+            throw IllegalStateException("the current downloader is downloading")
+        }
+        if (executor == null) {
+            executor = Executors.newCachedThreadPool()
+        }
+        if (client == null) {
+            client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
+        }
+        lock = MultLock(maxThreadCount)
+
+        isDownloading = true
+//        this.list = item.value!!.tsUrls!!
+        mItem = item
+        this.path = item.value!!.parentPath
+        file = File(path + "/0.txt").apply {
+            this.deleteOnExit()
+            createNewFile()
+        }
+        start()
+    }
+
+    private fun getNextTS(): TSItem? {
+        if (copyTSItems.size == 0) {
+            return null
+        }
+        var item = copyTSItems.removeAt(0)
+        downloadingTS.add(item)
+        return item
     }
 
     private fun getNextUrl(): String? {

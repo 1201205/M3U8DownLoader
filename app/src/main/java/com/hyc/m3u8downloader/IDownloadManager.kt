@@ -5,6 +5,7 @@ import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.model.MediaWithTSFiles
 import com.hyc.m3u8downloader.model.MyLiveData
 import io.reactivex.Maybe
+import java.util.ArrayList
 
 interface IDownloadManager {
     //创建下载
@@ -16,7 +17,8 @@ interface IDownloadManager {
     fun getFileCount(): Int
     fun setThreadCount(count: Int)
     fun setFileCount(count: Int)
-    fun getAllMedia(): Maybe<List<MediaWithTSFiles>>
-    fun deleteItem(item: MediaItem)
+    fun getAllMedia(): ArrayList<MutableLiveData<MediaItem>>
+    fun deleteItem(item: MutableLiveData<MediaItem>)
+    fun resumeItem(item: MutableLiveData<MediaItem>)
 
 }
