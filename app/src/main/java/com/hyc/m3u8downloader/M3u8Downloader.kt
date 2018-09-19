@@ -15,7 +15,7 @@ class M3u8Downloader(private val tsFile: TSItem, private val path: String, priva
             var index: Int = tsFile.index!!
             call.execute().let { response ->
                 var inputStream: InputStream
-                var buf = ByteArray(2048)
+                var buf = ByteArray(1024*4)
                 var fos: FileOutputStream? = null
                 try {
                     response.body()?.let { rs ->

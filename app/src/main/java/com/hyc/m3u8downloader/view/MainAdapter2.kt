@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import com.hyc.m3u8downloader.DownloadManager
 import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.databinding.ItemMainBinding
 import com.hyc.m3u8downloader.model.MediaItem
@@ -55,9 +56,9 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
         notifyItemChanged(size)
     }
     fun addItem(item: MutableLiveData<MediaItem>) {
-        val size = mItems.size
-        mItems.add(item)
-        notifyItemInserted(size)
+//        val size = mItems.size
+//        mItems.add(item)
+        notifyItemInserted(0)
     }
 
     fun change(index: Int) {
@@ -68,6 +69,9 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
     }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        init {
+            view.setOnClickListener { DownloadManager.getInstance().resumeItem(adapterPosition) }
+        }
 //        var tvName: TextView = view.findViewById(R.id.tv_name)
 //        var tvPath: TextView = view.findViewById(R.id.tv_path)
 //        var tvCount: TextView = view.findViewById(R.id.tv_count)

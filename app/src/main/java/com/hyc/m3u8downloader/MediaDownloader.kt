@@ -29,7 +29,7 @@ class MediaDownloader : Thread() {
      */
     var executor: ExecutorService? = null
     var client: OkHttpClient? = null
-    var maxThreadCount: Int = 12
+    var maxThreadCount: Int = 8
     var isDownloading = false
     private var lock: MultLock? = null
     var list: List<String>? = null
@@ -150,6 +150,7 @@ class MediaDownloader : Thread() {
                     if (ts.success) {
                         downloadingTS.remove(ts)
                         count++
+                        lock!!.unlock()
                         continue
                     }
                     val request = Request.Builder().url(ts.url!!).build()
@@ -169,12 +170,12 @@ class MediaDownloader : Thread() {
                     while (checkArray.size() > 0) {
                         var key = checkArray.keyAt(0)
                         var value = checkArray[key]
-                        if (value == 0L) {
+                        if (value==null||value == 0L) {
                             value = allTs!![key].total
                         }
                         var file = File(getFilePath(key))
                         var length = file.length()
-                        if (length == value) {
+                        if (length >= value) {
                             checkArray.remove(key)
                             Log.d("media_downloader", "check the $key file download success  it's size = $value")
                         } else {
@@ -238,7 +239,8 @@ class MediaDownloader : Thread() {
             executor = Executors.newCachedThreadPool()
         }
         if (client == null) {
-            client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
+            client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS).readTimeout(25, TimeUnit.SECONDS).build()
+            Log.e("hyc--oooo","===========")
         }
         lock = MultLock(maxThreadCount)
         copyList.addAll(item.value!!.tsUrls!!)
@@ -262,7 +264,7 @@ class MediaDownloader : Thread() {
             executor = Executors.newCachedThreadPool()
         }
         if (client == null) {
-            client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
+            client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build()
         }
         lock = MultLock(maxThreadCount)
 

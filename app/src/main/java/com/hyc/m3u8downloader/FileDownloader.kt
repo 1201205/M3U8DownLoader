@@ -45,6 +45,7 @@ class FileDownloader {
     }
 
     fun download(item: MutableLiveData<MediaItem>, callBack: DownloadCallBack) {
+        mItem=item
         item.value?.let {
             if (it.state == 0||it.list==null) {
                 if (TextUtils.isEmpty(it.url)) {
@@ -129,7 +130,6 @@ class FileDownloader {
                             }
                             Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
                             fos.flush()
-                            callBack.onDownloadSuccess(url)
                             currentState = PARSING
                             M3u8FileParser().parse(mItem!!.value!!.id!!,url, file, object : ParseCallBack {
                                 override fun onParseSuccess(list: List<TSItem>) {

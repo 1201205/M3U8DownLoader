@@ -20,6 +20,7 @@ class DownloadManager : IDownloadManager {
         liveData.value = item
         val downloader = FileDownloader()
         downloadingItems.add(downloader)
+        allItems.add(0,liveData)
         downloader.download(liveData, object : DownloadCallBack {
             override fun onDownloadSuccess(url: String) {
                 downloadingItems.remove(downloader)
@@ -27,7 +28,6 @@ class DownloadManager : IDownloadManager {
             }
 
             override fun onDownloadFailed(url: String) {
-                downloadingItems.remove(downloader)
                 downloadNext()
             }
         })
@@ -119,6 +119,21 @@ class DownloadManager : IDownloadManager {
                 downloadNext()
             }
         })
+    }
+
+    fun resumeItem(pos:Int){
+//        if (allItems.get(pos).value!!.state == 1) {
+//            for (downloader in downloadingItems) {
+//                if (downloader.isThisDownloading(allItems.get(pos))) {
+//                    downloader.stopDownload()
+//                    allItems.get(pos).value!!.state = 2
+//                    downloadingItems.remove(downloader)
+//                    break
+//                }
+//            }
+//        } else {
+            resumeItem(allItems.get(pos))
+//        }
     }
 
     companion object {
