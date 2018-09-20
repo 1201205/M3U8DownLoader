@@ -8,10 +8,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class M3u8Downloader(private val tsFile: TSItem, private val path: String, private val lock: DownloadCallback, private val call: Call) : Runnable {
+class M3u8Downloader(private val tsFile: TSItem, private val lock: DownloadCallback, private val call: Call) : Runnable {
 
     override fun run() {
         try {
+            val path=tsFile.path
             var index: Int = tsFile.index!!
             call.execute().let { response ->
                 var inputStream: InputStream

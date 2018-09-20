@@ -23,6 +23,7 @@ class TSItem {
         this.index = index
         this.url = url
         this.mediaId = mediaId
+        this.path = path
     }
 
 

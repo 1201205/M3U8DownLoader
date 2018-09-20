@@ -5,7 +5,6 @@ import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
 import com.hyc.m3u8downloader.utils.ItemDelegate
 import com.hyc.m3u8downloader.utils.Sp
-import org.greenrobot.eventbus.EventBus
 
 @Entity
 class MediaItem {
@@ -18,6 +17,7 @@ class MediaItem {
     var fileCount: Int? = null
     var downloadedCount: Int = 0
     var parentPath: String? = null
+    var picPath: String? = null
     @Ignore
     var tsUrls: List<String>? = null
     @Ignore
@@ -29,10 +29,6 @@ class MediaItem {
         return "MediaItem(id=$id, name=$name, url=$url, state=$state, mp4Path=$mp4Path)"
     }
 
-    fun notifyChanged() {
-        EventBus.getDefault().post(ItemChangeEvent(index))
-        MyDatabase.getInstance().getMediaItemDao().updateMedia(this)
-    }
 //    @Relation(parentColumn = "id", entityColumn = "media_id")
 //    var tsFiles: ArrayList<TSItem>? = null
 

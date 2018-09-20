@@ -2,6 +2,7 @@ package com.hyc.m3u8downloader
 
 import android.arch.lifecycle.MutableLiveData
 import android.support.v4.util.SparseArrayCompat
+import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.model.MediaItemDao
@@ -27,27 +28,43 @@ class MediaDownloader : Thread() {
      * 2.这个步骤放在上面两步之后
      *
      */
-    var executor: ExecutorService? = null
-    var client: OkHttpClient? = null
-    var maxThreadCount: Int = 8
-    var isDownloading = false
+    private var executor: ExecutorService? = null
+    private var client: OkHttpClient? = null
+    private var maxThreadCount: Int = DownloadManager.getInstance().getThreadCount()
+    private var isDownloading = false
     private var lock: MultLock? = null
     var list: List<String>? = null
     lateinit var mItem: MutableLiveData<MediaItem>
-    var copyList: ArrayList<String> = ArrayList()
+    private var copyList: ArrayList<String> = ArrayList()
     var path: String? = null
     var file: File? = null
     var map = SparseArrayCompat<TSItem>()
     private var allTs = ArrayList<TSItem>()
-    var copyTSItems: ArrayList<TSItem> = ArrayList()
-    var checkArray = SparseArrayCompat<Long>()
-    lateinit var mediaCallback: FileDownloader.MediaMergeCallback
+    private var copyTSItems: ArrayList<TSItem> = ArrayList()
+    private var checkArray = SparseArrayCompat<Long>()
+    private lateinit var mediaCallback: FileDownloader.MediaMergeCallback
     private var callBack = object : M3u8Downloader.DownloadCallback {
         override fun onFileDownloadSuccess(tsFile: TSItem) {
             downloadingTS.remove(tsFile)
-            var value = mItem.value
-            value!!.downloadedCount++
-            mItem.postValue(value)
+            mItem.value?.apply {
+                this.downloadedCount++
+                if (TextUtils.isEmpty(this.picPath) && tsFile.index!! > 0) {
+                    synchronized(MediaDownloader@ this) {
+                        try {
+                            val path = this.parentPath + "/0.jpg"
+                            CMDUtil.instance.exeThumb(tsFile.path!!, path, 1920, 1080, 1f)
+                            val pic = File(path)
+                            if (pic.exists() && pic.length() > 0) {
+                                this.picPath = path
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+                mItem.postValue(this)
+            }
+
             tsFile.success = true
             MediaItemDao.updateTS(tsFile)
             lock!!.unlock()
@@ -135,6 +152,7 @@ class MediaDownloader : Thread() {
             allTs.addAll(this)
             copyTSItems.addAll(allTs)
         }
+        mItem.value!!.fileCount = allTs.size
         var count = 0
         var fw = FileWriter(file)
         var writer = BufferedWriter(fw)
@@ -155,7 +173,8 @@ class MediaDownloader : Thread() {
                     }
                     val request = Request.Builder().url(ts.url!!).build()
                     var call = client!!.newCall(request)
-                    executor!!.execute(M3u8Downloader(ts, getFilePath(count), callBack, call))
+                    ts.path = getFilePath(count)
+                    executor!!.execute(M3u8Downloader(ts, callBack, call))
                     count++
                 } else if (map.size() > 0) {
                     var key = map.keyAt(0)
@@ -164,13 +183,14 @@ class MediaDownloader : Thread() {
                     var call = client!!.newCall(request)
                     map.remove(key)
                     downloadingTS.add(value)
-                    executor!!.execute(M3u8Downloader(value, getFilePath(key), callBack, call))
+                    value.path = getFilePath(key)
+                    executor!!.execute(M3u8Downloader(value, callBack, call))
                 } else {
                     //检查下载
                     while (checkArray.size() > 0) {
                         var key = checkArray.keyAt(0)
                         var value = checkArray[key]
-                        if (value==null||value == 0L) {
+                        if (value == null || value == 0L) {
                             value = allTs!![key].total
                         }
                         var file = File(getFilePath(key))
@@ -197,6 +217,9 @@ class MediaDownloader : Thread() {
             fw.flush()
             writer.close()
             fw.close()
+            if (mItem.value!!.state == 2) {
+                return
+            }
             CMDUtil.instance.executeMerge(file!!.absolutePath, "$path/main.mp4")
             Log.e("hyc-media", "success")
             mediaCallback.onSuccess()
@@ -220,7 +243,7 @@ class MediaDownloader : Thread() {
         return this
     }
 
-    fun withExecutor(executor: ThreadPoolExecutor): MediaDownloader {
+    fun withExecutor(executor: ExecutorService): MediaDownloader {
         this.executor = executor
         return this
     }
@@ -240,7 +263,7 @@ class MediaDownloader : Thread() {
         }
         if (client == null) {
             client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS).readTimeout(25, TimeUnit.SECONDS).build()
-            Log.e("hyc--oooo","===========")
+            Log.e("hyc--oooo", "===========")
         }
         lock = MultLock(maxThreadCount)
         copyList.addAll(item.value!!.tsUrls!!)
@@ -267,7 +290,6 @@ class MediaDownloader : Thread() {
             client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build()
         }
         lock = MultLock(maxThreadCount)
-
         isDownloading = true
 //        this.list = item.value!!.tsUrls!!
         mItem = item

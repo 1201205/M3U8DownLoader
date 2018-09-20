@@ -20,5 +20,5 @@ interface IDownloadManager {
     fun getAllMedia(): ArrayList<MutableLiveData<MediaItem>>
     fun deleteItem(item: MutableLiveData<MediaItem>)
     fun resumeItem(item: MutableLiveData<MediaItem>)
-
+    fun pauseItem(item: MutableLiveData<MediaItem>)
 }

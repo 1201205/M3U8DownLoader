@@ -23,6 +23,11 @@ interface MediaItemDao {
     @Query("SELECT * from TSItem WHERE media_id =:id ORDER BY `index` ASC")
     fun loadAllTS(id: Long): List<TSItem>
 
+    @Query("DELETE FROM MediaItem")
+    fun deleteAllMedia()
+
+    @Query("DELETE FROM TSItem")
+    fun deleteAllTSItem()
 
     @Insert
     fun insertTSItems(items: List<TSItem>)
@@ -88,6 +93,14 @@ interface MediaItemDao {
 
         fun loadAllTS(item: MediaItem) = MyDatabase.getInstance().getMediaItemDao().loadAllTS(item.id!!)
         fun insertTSItems(list: List<TSItem>) = MyDatabase.getInstance().getMediaItemDao().insertTSItems(list)
+        fun deleteAll() {
+            Observable.create<Any> {
+                MyDatabase.getInstance().getMediaItemDao().apply {
+                    deleteAllMedia()
+                    deleteAllTSItem()
+                }
 
+            }.subscribeOn(Schedulers.newThread()).subscribe()
+        }
     }
 }

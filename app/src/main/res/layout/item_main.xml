@@ -6,25 +6,28 @@
             name="item"
             type="com.hyc.m3u8downloader.model.MediaItem"/>
     </data>
-    <RelativeLayout
+    <RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:context=".MainActivity">
 
         <ImageView
+            app:picPath="@{item.picPath}"
             android:id="@+id/iv_pic"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@mipmap/ic_launcher" />
 
         <Button
+            app:changeBackground="@{item.state}"
             android:id="@+id/bt_state"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true" />
 
         <TextView
+            app:state="@{item.state}"
             android:id="@+id/tv_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -37,7 +40,8 @@
             tools:text="111111111111111111111111111111" />
 
         <TextView
-            android:text="@{String.valueOf(item.state)}"
+            app:totalCount="@{item.fileCount}"
+            app:downloadCount="@{item.downloadedCount}"
             android:id="@+id/tv_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

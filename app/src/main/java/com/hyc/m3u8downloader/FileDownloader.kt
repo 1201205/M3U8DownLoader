@@ -15,14 +15,17 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.ThreadPoolExecutor
 
-class FileDownloader {
+class FileDownloader(client: OkHttpClient, executors: ExecutorService) {
     /**
      * 如何暂停下载？？
      * 1.确定下载过程中的当前状态：有下载m3u8和解析文件和下载ts文件3种状态
      * 2.针对每个状态做出处理：下载m3u8就直接取消，解析文件就等待解析完毕，下载ts就发送消息结束下载循环
      */
-    private var mClient: OkHttpClient = OkHttpClient()
+    private var mClient: OkHttpClient = client
+    private var mExecutors = executors
     private var mRedirect = 0
     private val INIT = 0
     private val DOWNLOADING_M3U8 = 1
@@ -45,15 +48,14 @@ class FileDownloader {
     }
 
     fun download(item: MutableLiveData<MediaItem>, callBack: DownloadCallBack) {
-        mItem=item
+        mItem = item
         item.value?.let {
-            if (it.state == 0||it.list==null) {
+            if (it.state == 0 || it.list == null) {
                 if (TextUtils.isEmpty(it.url)) {
                     return
                 }
                 mItem = item
                 it.parentPath = rootPath + MD5Util.crypt(it.url)
-                MediaItemDao.getIDAndInsert(it!!)
                 downLoad(it.url!!, callBack)
             } else {
                 it.state = 1
@@ -70,7 +72,6 @@ class FileDownloader {
                 })
 
             }
-
         }
 
     }
@@ -131,7 +132,7 @@ class FileDownloader {
                             Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
                             fos.flush()
                             currentState = PARSING
-                            M3u8FileParser().parse(mItem!!.value!!.id!!,url, file, object : ParseCallBack {
+                            M3u8FileParser().parse(mItem!!.value!!.id!!, url, file, object : ParseCallBack {
                                 override fun onParseSuccess(list: List<TSItem>) {
                                     mItem?.value?.let { item ->
                                         if (stopped) {
@@ -145,7 +146,7 @@ class FileDownloader {
                                             return
                                         }
                                         currentState = DOWNLOADING_TS
-                                        downloader = MediaDownloader()
+                                        downloader = MediaDownloader().withClient(mClient).withExecutor(mExecutors)
                                         downloader!!.download(mItem!!, object : MediaMergeCallback {
                                             override fun onSuccess() {
                                                 onDownloadSuccess()

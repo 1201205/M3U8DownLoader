@@ -54,6 +54,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         DownloadManager.getInstance().startAll()
     }
 
+    fun pauseItem(item: MutableLiveData<MediaItem>) {
+        DownloadManager.getInstance().pauseItem(item)
+    }
+
+    fun resumeItem(item: MutableLiveData<MediaItem>) {
+        DownloadManager.getInstance().resumeItem(item)
+    }
+
     fun createItem(name: String, url: String) {
         adapter.value!!.addItem(DownloadManager.getInstance().createNew(url, name))
     }

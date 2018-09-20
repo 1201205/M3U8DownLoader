@@ -24,7 +24,7 @@ import java.util.ArrayList
 class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Context) : RecyclerView.Adapter<MainAdapter2.ViewHolder>() {
     private var mItems: ArrayList<MutableLiveData<MediaItem>> = items
     private var mContext = context
-
+    private var mItemListener: OnItemClickListener? = null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         var inflater = LayoutInflater.from(parent.context)
         var binding = DataBindingUtil.inflate<ItemMainBinding>(inflater, R.layout.item_main, parent, false)
@@ -46,6 +46,11 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
                 binding.executePendingBindings()
             }
         })
+        binding.btState.setOnClickListener { mItemListener?.let { it.onItemClicked(mItems[position]) } }
+    }
+
+    fun setOnClickListener(listener: OnItemClickListener) {
+        mItemListener = listener
     }
 
     fun addItem(item: MediaItem) {
@@ -55,6 +60,7 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
         mItems.add(ixx)
         notifyItemChanged(size)
     }
+
     fun addItem(item: MutableLiveData<MediaItem>) {
 //        val size = mItems.size
 //        mItems.add(item)
@@ -69,13 +75,17 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
     }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        init {
-            view.setOnClickListener { DownloadManager.getInstance().resumeItem(adapterPosition) }
-        }
+//        init {
+//            view.setOnClickListener { DownloadManager.getInstance().resumeItem(adapterPosition) }
+//        }
 //        var tvName: TextView = view.findViewById(R.id.tv_name)
 //        var tvPath: TextView = view.findViewById(R.id.tv_path)
 //        var tvCount: TextView = view.findViewById(R.id.tv_count)
 //        var ivPic: ImageView = view.findViewById(R.id.iv_pic)
 //        var btState: Button = view.findViewById(R.id.bt_state)
+    }
+
+    interface OnItemClickListener {
+        fun onItemClicked(item: MutableLiveData<MediaItem>)
     }
 }

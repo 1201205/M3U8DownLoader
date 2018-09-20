@@ -3,8 +3,7 @@ package com.hyc.m3u8downloader.utils
 import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.MainApplication
-import java.io.File
-import java.io.FileOutputStream
+import java.io.*
 
 class CMDUtil private constructor() {
     private val fileName = "ffmpeg"
@@ -49,13 +48,40 @@ class CMDUtil private constructor() {
 
     fun canUseCMD() = !TextUtils.isEmpty(absFilePath)
     fun executeMerge(configPath: String, targetPath: String) {
-        Runtime.getRuntime().exec("$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
+        Log.e("hyc-cmd", "start--" + absFilePath)
+        val process = Runtime.getRuntime().exec("$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
+        process.waitFor()
         Log.e("cmd", "$absFilePath -f concat -i $configPath -c copy $targetPath -y ")
+        Log.e("hyc-cmd", "end--")
     }
 
     fun exeThumb(mediaPath: String, targetPath: String, width: Int, height: Int, time: Float) {
         Log.e("hyc-cmd", "start--" + absFilePath)
-        Runtime.getRuntime().exec("$absFilePath -i $mediaPath -vframes 1 -y -f image2 -t 0.5 -s $width*$height $targetPath")
+        var process = Runtime.getRuntime().exec("$absFilePath -i $mediaPath  -y -f image2 -t 10 -s $width*$height $targetPath")
+        process.waitFor()
+        Log.e("hyc-cmd", "${process.exitValue()}")
+//        convertInputStreamToString(process.inputStream)
+
         Log.e("hyc-cmd", "end--")
     }
+
+//    private fun convertInputStreamToString(inputStream: InputStream): String? {
+//        try {
+//            val r = BufferedReader(InputStreamReader(inputStream))
+//            val sb = StringBuilder()
+//            var str: String? = r.readLine()
+//            while (str != null) {
+//                sb.append(str)
+//                Log.e("hyc-cmd", str)
+//                sb.append("\n")
+//                str = r.readLine()
+//            }
+//            return sb.toString()
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
+//
+//        return null
+//    }
+
 }
