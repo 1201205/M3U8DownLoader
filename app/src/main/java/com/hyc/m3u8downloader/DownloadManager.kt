@@ -22,9 +22,10 @@ class DownloadManager : IDownloadManager {
     private lateinit var allItems: ArrayList<MutableLiveData<MediaItem>>
     private var maxDownloadingCount by Sp("max_downloading_count", 3)
     private var maxThreadCount by Sp("max_thread_count", 6)
-    private val mClient = OkHttpClient.Builder().readTimeout(1, TimeUnit.MINUTES).build()
+    private val mClient = OkHttpClient.Builder().readTimeout(1, TimeUnit.SECONDS).build()
+    private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultLock>()//因为不想添加暂停中状态 todo 成功回调中去除lock
     private val mExecutor = ThreadPoolExecutor(0, Integer.MAX_VALUE,
-            60L, TimeUnit.SECONDS,
+            20L, TimeUnit.SECONDS,
             SynchronousQueue(), DefaultThreadFactory())
 
     override fun createNew(url: String, name: String): MyLiveData {
@@ -133,7 +134,14 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun resumeItem(item: MutableLiveData<MediaItem>) {
-        val downloader = FileDownloader(mClient, mExecutor)
+        var lock:MultLock?=null
+        if (mLockMap.containsKey(item)) {
+            lock=mLockMap[item]
+        }
+        if (lock==null) {
+            lock=MultLock(maxThreadCount)
+        }
+        val downloader = FileDownloader(mClient, mExecutor,lock)
         downloadingItems.add(downloader)
         downloader.download(item, object : DownloadCallBack {
             override fun onDownloadSuccess(url: String) {
@@ -179,7 +187,14 @@ class DownloadManager : IDownloadManager {
     }
 
     private fun createDownloader(item: MutableLiveData<MediaItem>) {
-        val downloader = FileDownloader(mClient, mExecutor)
+        var lock:MultLock?=null
+        if (mLockMap.containsKey(item)) {
+            lock=mLockMap[item]
+        }
+        if (lock==null) {
+            lock= MultLock(maxThreadCount)
+        }
+        val downloader = FileDownloader(mClient, mExecutor,lock)
         downloadingItems.add(downloader)
         downloader.download(item, object : DownloadCallBack {
             override fun onDownloadSuccess(url: String) {
@@ -215,9 +230,9 @@ class DownloadManager : IDownloadManager {
                 s.threadGroup
             else
                 Thread.currentThread().threadGroup
-            namePrefix = "m3u8_downloader-" +
+            namePrefix = "m3u8-" +
                     poolNumber.getAndIncrement() +
-                    "-thread-"
+                    "-t-"
         }
 
         override fun newThread(r: Runnable): Thread {

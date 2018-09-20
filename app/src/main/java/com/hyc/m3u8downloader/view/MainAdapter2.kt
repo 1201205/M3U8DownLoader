@@ -64,7 +64,7 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
     fun addItem(item: MutableLiveData<MediaItem>) {
 //        val size = mItems.size
 //        mItems.add(item)
-        notifyItemInserted(0)
+        notifyDataSetChanged()
     }
 
     fun change(index: Int) {

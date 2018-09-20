@@ -24,6 +24,8 @@ class MultLock(var max: Int) : Lock {
         sync.releaseShared(1)
     }
 
+    fun getLiveCount() = sync.getLiveState()
+
     override fun lockInterruptibly() {
         throw UnsupportedOperationException()
     }
@@ -40,6 +42,7 @@ class MultLock(var max: Int) : Lock {
             state = max
         }
 
+        fun getLiveState() = state
         public override fun tryAcquireShared(arg: Int): Int {
             var current = state
             var newCount = current - arg

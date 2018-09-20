@@ -68,6 +68,7 @@ class MediaDownloader : Thread() {
             tsFile.success = true
             MediaItemDao.updateTS(tsFile)
             lock!!.unlock()
+            Log.e("hyc-thread","-----${lock!!.getLiveCount()}")
         }
 
         override fun onGetContentLength(tsFile: TSItem) {
@@ -78,6 +79,7 @@ class MediaDownloader : Thread() {
             map.put(tsFile.index!!, tsFile)
             downloadingTS.remove(tsFile)
             lock!!.unlock()
+            Log.e("hyc-thread","${lock!!.getLiveCount()}")
         }
     }
     private var downloadingList: ArrayList<String> = ArrayList()
@@ -152,12 +154,13 @@ class MediaDownloader : Thread() {
             allTs.addAll(this)
             copyTSItems.addAll(allTs)
         }
+        mItem.value!!.downloadedCount = allTs.count { it.success }
         mItem.value!!.fileCount = allTs.size
         var count = 0
         var fw = FileWriter(file)
         var writer = BufferedWriter(fw)
         try {
-            while (isDownloading) {
+            while (isDownloading && !isInterrupted) {
                 if (copyTSItems.size == 0 && map.size() == 0 && checkArray.size() == 0) {
                     break
                 }
@@ -217,7 +220,7 @@ class MediaDownloader : Thread() {
             fw.flush()
             writer.close()
             fw.close()
-            if (mItem.value!!.state == 2) {
+            if (mItem.value!!.state == 2 || isInterrupted) {
                 return
             }
             CMDUtil.instance.executeMerge(file!!.absolutePath, "$path/main.mp4")
@@ -232,6 +235,7 @@ class MediaDownloader : Thread() {
 
     fun stopDownload() {
         isDownloading = false
+        interrupt()
     }
 
     fun newInstance(): MediaDownloader {
@@ -247,9 +251,8 @@ class MediaDownloader : Thread() {
         this.executor = executor
         return this
     }
-
-    fun withMaxThreadCount(count: Int): MediaDownloader {
-        maxThreadCount = count
+    fun withLock(lock: MultLock): MediaDownloader {
+        this.lock = lock
         return this
     }
 
@@ -265,7 +268,9 @@ class MediaDownloader : Thread() {
             client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS).readTimeout(25, TimeUnit.SECONDS).build()
             Log.e("hyc--oooo", "===========")
         }
-        lock = MultLock(maxThreadCount)
+        if (lock==null) {
+            lock = MultLock(maxThreadCount)
+        }
         copyList.addAll(item.value!!.tsUrls!!)
         isDownloading = true
         this.list = item.value!!.tsUrls!!

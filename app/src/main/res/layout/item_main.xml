@@ -21,8 +21,9 @@
         <Button
             app:changeBackground="@{item.state}"
             android:id="@+id/bt_state"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="8dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true" />
 

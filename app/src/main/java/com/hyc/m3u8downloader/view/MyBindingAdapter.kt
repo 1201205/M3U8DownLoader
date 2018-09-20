@@ -21,8 +21,8 @@ fun changeState(view: TextView, state: Int) {
 fun changeBackground(button: Button, state: Int) {
     when (state) {
         0 -> button.setBackgroundResource(R.mipmap.item_waiting)
-        1 -> button.setBackgroundResource(R.mipmap.item_pause)
-        2 -> button.setBackgroundResource(R.mipmap.item_start)
+        1 -> button.setBackgroundResource(R.mipmap.pause)
+        2 -> button.setBackgroundResource(R.mipmap.play)
     }
 }
 
