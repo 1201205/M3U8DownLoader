@@ -3,6 +3,7 @@ package com.hyc.m3u8downloader
 import android.app.Application
 import android.util.Log
 import com.hyc.m3u8downloader.utils.CMDUtil
+import com.hyc.m3u8downloader.utils.NetStateChangeReceiver
 import com.tencent.bugly.Bugly
 import kotlin.properties.Delegates
 
@@ -15,6 +16,7 @@ class MainApplication : Application() {
         super.onCreate()
         instance = this
         Bugly.init(this, "11dfe72ef9", false)
+        NetStateChangeReceiver.getInstance()
         Log.d("cmd", CMDUtil.instance.canUseCMD().toString())
     }
 }

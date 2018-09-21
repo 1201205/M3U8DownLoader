@@ -8,7 +8,7 @@ import io.reactivex.schedulers.Schedulers
 @Dao
 interface MediaItemDao {
     //todo find how to use the one to many
-    @Query("SELECT * from MediaItem")
+    @Query("SELECT * from MediaItem ORDER BY id DESC")
     fun loadAllMedia(): List<MediaWithTSFiles>?
 
     @Query("SELECT * from MediaItem")
@@ -28,7 +28,8 @@ interface MediaItemDao {
 
     @Query("DELETE FROM TSItem")
     fun deleteAllTSItem()
-
+    @Query("DELETE FROM TSItem WHERE media_id =:id")
+    fun deleteTSItems(id: Long)
     @Insert
     fun insertTSItems(items: List<TSItem>)
 
@@ -102,5 +103,7 @@ interface MediaItemDao {
 
             }.subscribeOn(Schedulers.newThread()).subscribe()
         }
+        fun deleteTSByItem(item: MediaItem) = MyDatabase.getInstance().getMediaItemDao().deleteTSItems(item.id!!)
+
     }
 }

@@ -22,13 +22,19 @@ fun changeBackground(button: Button, state: Int) {
     when (state) {
         0 -> button.setBackgroundResource(R.mipmap.item_waiting)
         1 -> button.setBackgroundResource(R.mipmap.pause)
-        2 -> button.setBackgroundResource(R.mipmap.play)
+        2, 3 -> button.setBackgroundResource(R.mipmap.play)
     }
 }
 
-@BindingAdapter(value = ["downloadCount", "totalCount"], requireAll = true)
-fun updateProgress(view: TextView, downloadCount: Int, totalCount: Int) {
-    view.text = "已下载$downloadCount/{$totalCount}个文件"
+@BindingAdapter(value = ["downloadCount", "totalCount", "state"], requireAll = true)
+fun updateProgress(view: TextView, downloadCount: Int, totalCount: Int, state: Int) {
+    when (state) {
+        0 -> view.text = "初始化"
+        1 -> view.text = "下载中：已下载 $downloadCount/$totalCount 个文件"
+        2 -> view.text = "已暂停"
+        3 -> view.text = "已完成"
+        4 -> view.text = "文件合成中"
+    }
 }
 
 @BindingAdapter("picPath")

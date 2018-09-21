@@ -22,7 +22,7 @@ class DownloadManager : IDownloadManager {
     private lateinit var allItems: ArrayList<MutableLiveData<MediaItem>>
     private var maxDownloadingCount by Sp("max_downloading_count", 3)
     private var maxThreadCount by Sp("max_thread_count", 6)
-    private val mClient = OkHttpClient.Builder().readTimeout(1, TimeUnit.SECONDS).build()
+    private val mClient = OkHttpClient.Builder().readTimeout(1, TimeUnit.MINUTES).build()
     private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultLock>()//因为不想添加暂停中状态 todo 成功回调中去除lock
     private val mExecutor = ThreadPoolExecutor(0, Integer.MAX_VALUE,
             20L, TimeUnit.SECONDS,
@@ -49,6 +49,11 @@ class DownloadManager : IDownloadManager {
     override fun pauseAll() {
         for (item in downloadingItems) {
             item.stopDownload()
+            item.mItem!!.apply {
+                this.value!!.state = 2
+                this.postValue(this.value)
+            }
+            downloadingItems.remove(item)
             waitingItems.add(item.mItem!!)
         }
     }
@@ -70,6 +75,7 @@ class DownloadManager : IDownloadManager {
             downloader.stopDownload()
             downloadingItems.remove(downloader)
         }
+        mLockMap.clear()
         waitingItems.clear()
         for (item in allItems) {
             deleteCacheFiles(item.value!!.parentPath)
@@ -127,6 +133,7 @@ class DownloadManager : IDownloadManager {
                 break
             }
         }
+        mLockMap.remove(item)
         allItems.remove(item)
         deleteCacheFiles(item.value!!.parentPath)
         MediaItemDao.deleteItem(item.value!!)
@@ -134,26 +141,7 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun resumeItem(item: MutableLiveData<MediaItem>) {
-        var lock:MultLock?=null
-        if (mLockMap.containsKey(item)) {
-            lock=mLockMap[item]
-        }
-        if (lock==null) {
-            lock=MultLock(maxThreadCount)
-        }
-        val downloader = FileDownloader(mClient, mExecutor,lock)
-        downloadingItems.add(downloader)
-        downloader.download(item, object : DownloadCallBack {
-            override fun onDownloadSuccess(url: String) {
-                downloadingItems.remove(downloader)
-                downloadNext()
-            }
-
-            override fun onDownloadFailed(url: String) {
-                downloadingItems.remove(downloader)
-                downloadNext()
-            }
-        })
+        createDownloader(item)
     }
 
     private fun deleteCacheFiles(parentPath: String?) {
@@ -187,27 +175,32 @@ class DownloadManager : IDownloadManager {
     }
 
     private fun createDownloader(item: MutableLiveData<MediaItem>) {
-        var lock:MultLock?=null
+        var lock: MultLock? = null
         if (mLockMap.containsKey(item)) {
-            lock=mLockMap[item]
+            lock = mLockMap[item]
         }
-        if (lock==null) {
-            lock= MultLock(maxThreadCount)
+        if (lock == null) {
+            lock = MultLock(maxThreadCount)
+            mLockMap.put(item, lock)
         }
-        val downloader = FileDownloader(mClient, mExecutor,lock)
+        val downloader = FileDownloader(mClient, mExecutor, lock)
         downloadingItems.add(downloader)
         downloader.download(item, object : DownloadCallBack {
-            override fun onDownloadSuccess(url: String) {
+            override fun onDownloadSuccess(item: MutableLiveData<MediaItem>) {
                 downloadingItems.remove(downloader)
+                mLockMap.remove(item)
                 downloadNext()
             }
 
-            override fun onDownloadFailed(url: String) {
+            override fun onDownloadFailed(item: MutableLiveData<MediaItem>) {
                 downloadingItems.remove(downloader)
+                mLockMap.remove(item)
                 downloadNext()
             }
         })
     }
+
+    fun hasDownloadingFiles() = downloadingItems.size > 0
 
     companion object {
         @Volatile

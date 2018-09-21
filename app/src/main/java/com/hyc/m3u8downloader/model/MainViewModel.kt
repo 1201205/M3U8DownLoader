@@ -44,6 +44,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteAll() {
         DownloadManager.getInstance().deleteAll()
+        adapter.value!!.notifyDataSetChanged()
     }
 
     fun pauseAll() {
@@ -63,7 +64,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun createItem(name: String, url: String) {
-        adapter.value!!.addItem(DownloadManager.getInstance().createNew(url, name))
+        DownloadManager.getInstance().createNew(url, name)
+        adapter.value!!.notifyDataSetChanged()
+    }
+
+    fun deleteItem(item: MutableLiveData<MediaItem>) {
+        DownloadManager.getInstance().deleteItem(item)
+        adapter.value!!.notifyDataSetChanged()
     }
 
 }
