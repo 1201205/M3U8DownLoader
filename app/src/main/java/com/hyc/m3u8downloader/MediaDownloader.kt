@@ -164,13 +164,13 @@ class MediaDownloader : Thread() {
             }
             val mp4Path = "$path/main.mp4"
             CMDUtil.instance.executeMerge(file!!.absolutePath, mp4Path)
+            mItem.value!!.state = 3
+            mItem.value!!.mp4Path = mp4Path
+            mItem.postValue(mItem.value)
             Log.e("hyc-media", "success")
             deleteFile(File(mItem.value!!.parentPath))
             MediaItemDao.deleteTSByItem(mItem.value!!)
             mDownloadCallBack.onDownloadSuccess(mItem)
-            mItem.value!!.state = 3
-            mItem.value!!.mp4Path = mp4Path
-            mItem.postValue(mItem.value)
         } catch (e: Exception) {
             e.printStackTrace()
             mDownloadCallBack.onDownloadFailed(mItem)

@@ -2,6 +2,7 @@ package com.hyc.m3u8downloader
 
 import android.arch.lifecycle.MutableLiveData
 import android.text.TextUtils
+import android.util.Log
 import com.hyc.m3u8downloader.model.*
 import com.hyc.m3u8downloader.utils.MD5Util
 import com.hyc.m3u8downloader.utils.Sp
@@ -23,7 +24,7 @@ class DownloadManager : IDownloadManager {
     private var maxDownloadingCount by Sp("max_downloading_count", 3)
     private var maxThreadCount by Sp("max_thread_count", 6)
     private val mClient = OkHttpClient.Builder().readTimeout(1, TimeUnit.MINUTES).build()
-    private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultLock>()//因为不想添加暂停中状态 todo 成功回调中去除lock
+    private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultLock>()//因为不想添加暂停中状态
     private val mExecutor = ThreadPoolExecutor(0, Integer.MAX_VALUE,
             20L, TimeUnit.SECONDS,
             SynchronousQueue(), DefaultThreadFactory())
@@ -59,6 +60,9 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun startAll() {
+        if (!checkCreateDownloader()) {
+            return
+        }
         for (item in allItems) {
             if (checkCreateDownloader()) {
                 createDownloader(item)
@@ -73,13 +77,14 @@ class DownloadManager : IDownloadManager {
     override fun deleteAll() {
         for (downloader in downloadingItems) {
             downloader.stopDownload()
-            downloadingItems.remove(downloader)
         }
+        downloadingItems.clear()
         mLockMap.clear()
         waitingItems.clear()
         for (item in allItems) {
             deleteCacheFiles(item.value!!.parentPath)
         }
+        allItems.clear()
         MediaItemDao.deleteAll()
     }
 
@@ -149,7 +154,17 @@ class DownloadManager : IDownloadManager {
             return
         }
         val file = File(parentPath)
-        file.deleteOnExit()
+        if (!file.exists()) {
+            return
+        }
+        for (fileItem in file.listFiles()) {
+            if (fileItem.isDirectory) {
+                deleteCacheFiles(fileItem.absolutePath)
+            } else {
+                fileItem.delete()
+            }
+        }
+        file.delete()
     }
 
     override fun pauseItem(item: MutableLiveData<MediaItem>) {
@@ -175,6 +190,11 @@ class DownloadManager : IDownloadManager {
     }
 
     private fun createDownloader(item: MutableLiveData<MediaItem>) {
+        for (downItem in downloadingItems) {
+            if (downItem.isThisDownloading(item)) {
+                return
+            }
+        }
         var lock: MultLock? = null
         if (mLockMap.containsKey(item)) {
             lock = mLockMap[item]

@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity(), MediaController {
     private val PERMISSION_NET = "android.Manifest.permission.ACCESS_NETWORK_STATE"
     private val mRequestCode = 100
     private lateinit var mBinding: ActivityMainBinding
+    private var mWidth: Int = 0
     private val delayTime = 80L
     private var menuShowing = false
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -170,20 +171,28 @@ class MainActivity : AppCompatActivity(), MediaController {
 
     private fun showMenu() {
         menuShowing = true
+        if (mWidth == 0) {
+            mWidth = resources.displayMetrics.widthPixels
+            mBinding.llStartAll.translationX = mWidth - mBinding.llStartAll.x
+            mBinding.llCreate.translationX = mWidth - mBinding.llCreate.x
+            mBinding.llDeleteAll.translationX = mWidth - mBinding.llDeleteAll.x
+            mBinding.llPauseAll.translationX = mWidth - mBinding.llPauseAll.x
+        }
+
         mBinding.fabMenu.animate().rotation(45f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
-        mBinding.llStartAll.animate().setDuration(300).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime).start()
-        mBinding.llCreate.animate().setDuration(300).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 3).start()
-        mBinding.llDeleteAll.animate().setDuration(300).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 2).start()
-        mBinding.llPauseAll.animate().setDuration(300).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(0).start()
+        mBinding.llStartAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime).start()
+        mBinding.llCreate.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 3).start()
+        mBinding.llDeleteAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 2).start()
+        mBinding.llPauseAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(0).start()
     }
 
     private fun closeMenu() {
         menuShowing = false
         mBinding.fabMenu.animate().rotation(0f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
-        mBinding.llStartAll.animate().setDuration(300).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 2).start()
-        mBinding.llCreate.animate().setDuration(300).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(0).start()
-        mBinding.llDeleteAll.animate().setDuration(300).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime).start()
-        mBinding.llPauseAll.animate().setDuration(300).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 3).start()
+        mBinding.llStartAll.animate().setDuration(300).translationX(mWidth - mBinding.llStartAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 2).start()
+        mBinding.llCreate.animate().setDuration(300).translationX(mWidth - mBinding.llCreate.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(0).start()
+        mBinding.llDeleteAll.animate().setDuration(300).translationX(mWidth - mBinding.llDeleteAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime).start()
+        mBinding.llPauseAll.animate().setDuration(300).translationX(mWidth - mBinding.llPauseAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 3).start()
 
     }
 
