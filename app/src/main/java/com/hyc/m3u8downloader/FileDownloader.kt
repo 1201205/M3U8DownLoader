@@ -51,7 +51,7 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
     fun download(item: MutableLiveData<MediaItem>, callBack: DownloadCallBack) {
         mItem = item
         item.value?.let {
-            if (it.state == 0 || it.list == null) {
+            if (it.state == DownloadState.WAITING || it.list == null) {
                 if (TextUtils.isEmpty(it.url)) {
                     return
                 }
@@ -59,7 +59,7 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                 it.parentPath = rootPath + MD5Util.crypt(it.url)
                 downLoad(it.url!!, callBack)
             } else {
-                it.state = 1
+                it.state = DownloadState.DOWNLOADING
                 mItem!!.postValue(it)
                 currentState = DOWNLOADING_TS
                 downloader = MediaDownloader().withClient(mClient).withExecutor(mExecutors).withLock(multLock)
@@ -130,9 +130,9 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                                 override fun onParseSuccess(list: List<TSItem>) {
                                     mItem?.value?.let { item ->
                                         if (stopped) {
-                                            item.state = 2
+                                            item.state = DownloadState.STOPPED
                                         } else {
-                                            item.state = 1
+                                            item.state = DownloadState.DOWNLOADING
                                         }
                                         MediaItemDao.insertTSItems(list)
                                         mItem!!.postValue(item)
@@ -161,6 +161,7 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    callBack.onDownloadFailed(mItem!!)
                 }
             }
 

@@ -56,6 +56,27 @@ fun showNotWifiDialog(activity: Activity, listener: PositiveClickListener) {
     builder.show()
 }
 
+fun showReDownloadDialog(activity: Activity, listener: PositiveClickListener) {
+    val builder = AlertDialog.Builder(activity)
+    builder.setTitle("提示")
+    builder.setMessage("未找到合成的mp4文件，是否重新下载")
+    builder.setNegativeButton("取消", null)
+    builder.setPositiveButton("确定") { _, _ ->
+        listener.onPositiveClicked()
+    }
+    builder.show()
+}
+
+fun showDeleteItemDialog(activity: Activity, listener: PositiveClickListener){
+    val builder = AlertDialog.Builder(activity)
+    builder.setTitle("提示")
+    builder.setMessage("是否删除该资源？")
+    builder.setNegativeButton("取消", null)
+    builder.setPositiveButton("确定") { _, _ ->
+        listener.onPositiveClicked()
+    }
+    builder.show()
+}
 
 interface GetTextListener {
     fun onGetText(url: String)

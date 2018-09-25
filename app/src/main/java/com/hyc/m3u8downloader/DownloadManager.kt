@@ -2,7 +2,7 @@ package com.hyc.m3u8downloader
 
 import android.arch.lifecycle.MutableLiveData
 import android.text.TextUtils
-import android.util.Log
+import com.hyc.m3u8downloader.DownloadState.*
 import com.hyc.m3u8downloader.model.*
 import com.hyc.m3u8downloader.utils.MD5Util
 import com.hyc.m3u8downloader.utils.Sp
@@ -10,7 +10,6 @@ import com.hyc.m3u8downloader.utils.rootPath
 import okhttp3.OkHttpClient
 import java.io.File
 import java.util.ArrayList
-import java.util.concurrent.Executors
 import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.ThreadPoolExecutor
@@ -29,11 +28,19 @@ class DownloadManager : IDownloadManager {
             20L, TimeUnit.SECONDS,
             SynchronousQueue(), DefaultThreadFactory())
 
-    override fun createNew(url: String, name: String): MyLiveData {
+    override fun createNew(url: String, name: String): Boolean {
+        val historyItem = allItems.filter {
+            it.value!!.url.equals(url)
+        }
+        if (!historyItem.isEmpty()) {
+            return false
+        }
+
         val item = MediaItem()
         item.url = url
         item.parentPath = rootPath + MD5Util.crypt(item.url)
-        item.state = 0
+        item.state = WAITING
+        item.picPath = ""
         val liveData = MyLiveData()
         liveData.value = item
         allItems.add(0, liveData)
@@ -43,7 +50,7 @@ class DownloadManager : IDownloadManager {
             waitingItems.add(liveData)
         }
         MediaItemDao.getIDAndInsert(item)
-        return liveData
+        return true
     }
 
 
@@ -51,25 +58,24 @@ class DownloadManager : IDownloadManager {
         for (item in downloadingItems) {
             item.stopDownload()
             item.mItem!!.apply {
-                this.value!!.state = 2
+                this.value!!.state = STOPPED
                 this.postValue(this.value)
             }
-            downloadingItems.remove(item)
             waitingItems.add(item.mItem!!)
         }
+        downloadingItems.clear()
     }
 
     override fun startAll() {
-        if (!checkCreateDownloader()) {
-            return
-        }
         for (item in allItems) {
-            if (checkCreateDownloader()) {
-                createDownloader(item)
-            } else {
-                item.value!!.state = 0
-                item.postValue(item.value)
-                waitingItems.add(item)
+            if (item.value!!.state in arrayOf(FAiLED, STOPPED, WAITING)) {
+                if (checkCreateDownloader()) {
+                    createDownloader(item)
+                } else {
+                    item.value!!.state = WAITING
+                    item.postValue(item.value)
+                    waitingItems.add(item)
+                }
             }
         }
     }
@@ -112,16 +118,16 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun getAllMedia(): ArrayList<MutableLiveData<MediaItem>> {
-        var list = MediaItemDao.loadAllMedia()
-        var target = ArrayList<MutableLiveData<MediaItem>>()
-        if (list != null && !list.isEmpty()) {
+        val list = MediaItemDao.loadAllMedia()
+        val target = ArrayList<MutableLiveData<MediaItem>>()
+        if (!(list == null || list.isEmpty())) {
             for (item in list) {
-                var media = item.mediaItem
+                val media = item.mediaItem
                 media!!.list = item.tsFiles
-                if (media.state != 3) {
-                    media.state = 2
+                if (media.state != SUCCESS) {
+                    media.state = STOPPED
                 }
-                var data = MyLiveData()
+                val data = MyLiveData()
                 data.postValue(media)
                 target.add(data)
             }
@@ -171,7 +177,7 @@ class DownloadManager : IDownloadManager {
         for (downloader in downloadingItems) {
             if (downloader.isThisDownloading(item)) {
                 downloader.stopDownload()
-                item.value!!.state = 2
+                item.value!!.state = STOPPED
                 item.postValue(item.value)
                 downloadingItems.remove(downloader)
                 break
@@ -179,7 +185,10 @@ class DownloadManager : IDownloadManager {
         }
         downloadNext()
     }
-
+    override fun reDownloadItem(item: MutableLiveData<MediaItem>) {
+        deleteItem(item)
+        createNew(item.value!!.url!!,item.value!!.name!!)
+    }
     private fun checkCreateDownloader() = downloadingItems.size < getFileCount()
 
     private fun downloadNext() {
@@ -201,7 +210,7 @@ class DownloadManager : IDownloadManager {
         }
         if (lock == null) {
             lock = MultLock(maxThreadCount)
-            mLockMap.put(item, lock)
+            mLockMap[item] = lock
         }
         val downloader = FileDownloader(mClient, mExecutor, lock)
         downloadingItems.add(downloader)

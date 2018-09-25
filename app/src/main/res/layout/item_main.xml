@@ -9,14 +9,14 @@
     <RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/rl_item"
         tools:context=".MainActivity">
 
         <ImageView
             app:picPath="@{item.picPath}"
             android:id="@+id/iv_pic"
             android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@mipmap/ic_launcher" />
+            android:layout_height="100dp"/>
 
         <Button
             app:changeBackground="@{item.state}"

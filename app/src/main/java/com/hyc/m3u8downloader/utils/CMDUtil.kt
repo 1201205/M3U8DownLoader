@@ -57,31 +57,34 @@ class CMDUtil private constructor() {
 
     fun exeThumb(mediaPath: String, targetPath: String, width: Int, height: Int, time: Float) {
         Log.e("hyc-cmd", "start--" + absFilePath)
-        var process = Runtime.getRuntime().exec("$absFilePath -i $mediaPath  -y -f image2 -t 10 -s $width*$height $targetPath")
+//        var process=Runtime.getRuntime().exec("$absFilePath -i $mediaPath -vf fps=fps=1 $targetPath")
+        var process=Runtime.getRuntime().exec("$absFilePath -i $mediaPath -ss 00:00:01 -vframes 1 -s $width*$height $targetPath -y")
+
+//        var process = Runtime.getRuntime().exec("$absFilePath -i $mediaPath -r 1 -t 1 -y -f image2  -s $width*$height $targetPath")
         process.waitFor()
         Log.e("hyc-cmd", "${process.exitValue()}")
-//        convertInputStreamToString(process.inputStream)
-
+        convertInputStreamToString(process.inputStream)
+        convertInputStreamToString(process.errorStream)
         Log.e("hyc-cmd", "end--")
     }
 
-//    private fun convertInputStreamToString(inputStream: InputStream): String? {
-//        try {
-//            val r = BufferedReader(InputStreamReader(inputStream))
-//            val sb = StringBuilder()
-//            var str: String? = r.readLine()
-//            while (str != null) {
-//                sb.append(str)
-//                Log.e("hyc-cmd", str)
-//                sb.append("\n")
-//                str = r.readLine()
-//            }
-//            return sb.toString()
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        }
-//
-//        return null
-//    }
+    private fun convertInputStreamToString(inputStream: InputStream): String? {
+        try {
+            val r = BufferedReader(InputStreamReader(inputStream))
+            val sb = StringBuilder()
+            var str: String? = r.readLine()
+            while (str != null) {
+                sb.append(str)
+                Log.e("hyc-cmd", str)
+                sb.append("\n")
+                str = r.readLine()
+            }
+            return sb.toString()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        return null
+    }
 
 }

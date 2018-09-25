@@ -1,7 +1,9 @@
 package com.hyc.m3u8downloader
 
 import android.arch.lifecycle.MutableLiveData
+import android.graphics.BitmapFactory
 import android.support.v4.util.SparseArrayCompat
+import android.support.v7.graphics.Palette
 import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
@@ -51,8 +53,8 @@ class MediaDownloader : Thread() {
                 if (downloadedCount > fileCount!!) {
                     downloadedCount = list!!.count { it.success }
                 }
-                if (TextUtils.isEmpty(this.picPath) && tsFile.index!! > 0) {
-                    synchronized(MediaDownloader@ this) {
+                synchronized(MediaDownloader@ this) {
+                    if (TextUtils.isEmpty(this.picPath)) {
                         try {
                             val path = this.parentPath + "/0.jpg"
                             CMDUtil.instance.exeThumb(tsFile.path!!, path, 1920, 1080, 1f)
@@ -159,12 +161,14 @@ class MediaDownloader : Thread() {
             fw.flush()
             writer.close()
             fw.close()
-            if (mItem.value!!.state == 2 || isInterrupted) {
+            if (mItem.value!!.state == DownloadState.STOPPED || isInterrupted) {
                 return
             }
             val mp4Path = "$path/main.mp4"
+            mItem.value!!.state = DownloadState.MERGING
+            mItem.postValue(mItem.value)
             CMDUtil.instance.executeMerge(file!!.absolutePath, mp4Path)
-            mItem.value!!.state = 3
+            mItem.value!!.state = DownloadState.SUCCESS
             mItem.value!!.mp4Path = mp4Path
             mItem.postValue(mItem.value)
             Log.e("hyc-media", "success")
@@ -252,6 +256,6 @@ class MediaDownloader : Thread() {
     }
 
     private fun getFilePath(count: Int): String {
-        return path + "/" + count + ".ts"
+        return "$path/$count.ts"
     }
 }

@@ -9,7 +9,7 @@ import java.util.ArrayList
 
 interface IDownloadManager {
     //创建下载
-    fun createNew(url: String, name: String): MyLiveData
+    fun createNew(url: String, name: String): Boolean
     fun pauseAll()//暂停所有
     fun startAll()//开始所有
     fun deleteAll()//删除所有
@@ -21,4 +21,5 @@ interface IDownloadManager {
     fun deleteItem(item: MutableLiveData<MediaItem>)
     fun resumeItem(item: MutableLiveData<MediaItem>)
     fun pauseItem(item: MutableLiveData<MediaItem>)
+    fun reDownloadItem(item: MutableLiveData<MediaItem>)
 }

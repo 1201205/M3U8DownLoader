@@ -14,6 +14,7 @@ import com.hyc.m3u8downloader.MainApplication
 
 class NetStateChangeReceiver : BroadcastReceiver() {
     var ignoreNetState by Sp("ignore_net_state", false)
+    var backgroundDownload by Sp("background_download", true)
     private var currentState = 0
     private val connectivityManager = MainApplication.instance.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 

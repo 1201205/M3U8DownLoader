@@ -1,16 +1,23 @@
 package com.hyc.m3u8downloader
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
+import android.support.v4.app.NotificationCompat
+import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -39,6 +46,7 @@ class MainActivity : AppCompatActivity(), MediaController {
     private var mWidth: Int = 0
     private val delayTime = 80L
     private var menuShowing = false
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
@@ -54,6 +62,7 @@ class MainActivity : AppCompatActivity(), MediaController {
             it.observe(this, Observer<MainAdapter2> { t ->
                 t?.let {
                     t.setOnClickListener(this@MainActivity)
+                    t.setOnLongClickListener(this@MainActivity)
                 }
             })
         }
@@ -62,12 +71,15 @@ class MainActivity : AppCompatActivity(), MediaController {
             it.layoutManager = manager
             (it.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         }
+        Log.e("hyc-notify", NotificationManagerCompat.from(this).areNotificationsEnabled().toString())
+//        NotificationPageHelper.open(this)
+        startService(Intent(this, ForegroundService::class.java))
     }
 
     override fun onItemClicked(item: MutableLiveData<MediaItem>) {
         when (item.value!!.state) {
-            0, 1 -> mBinding.model!!.pauseItem(item)
-            2 -> {
+            DownloadState.DOWNLOADING, DownloadState.WAITING -> mBinding.model!!.pauseItem(item)
+            DownloadState.STOPPED, DownloadState.FAiLED -> {
                 when (NetStateChangeReceiver.getInstance().getNetState()) {
                     NetStateChangeReceiver.STATE_NO_CONNECT -> Toast.makeText(this, "当前无法连接网络，请连接后再试", Toast.LENGTH_LONG).show()
                     NetStateChangeReceiver.STATE_CONNECT_WIFI -> mBinding.model!!.resumeItem(item)
@@ -78,13 +90,26 @@ class MainActivity : AppCompatActivity(), MediaController {
                     })
                 }
             }
-            3 -> goToPlay(item.value!!.mp4Path)
+            DownloadState.SUCCESS -> goToPlay(item)
         }
     }
 
-    private fun goToPlay(mp4Path: String?) {
+    override fun onItemLongClicked(item: MutableLiveData<MediaItem>) {
+        showDeleteItemDialog(this, object : PositiveClickListener {
+            override fun onPositiveClicked() {
+                mBinding.model!!.deleteItem(item)
+            }
+        })
+    }
+
+    private fun goToPlay(item: MutableLiveData<MediaItem>) {
+        val mp4Path = item.value!!.mp4Path
         if (TextUtils.isEmpty(mp4Path) || !File(mp4Path).exists()) {
-            //todo show file not found need download
+            showReDownloadDialog(this, object : PositiveClickListener {
+                override fun onPositiveClicked() {
+                    mBinding.model!!.reDownload(item)
+                }
+            })
         } else {
             val intent = Intent(Intent.ACTION_VIEW)
             val type = "video/*"
@@ -116,8 +141,34 @@ class MainActivity : AppCompatActivity(), MediaController {
                 mBinding.model!!.deleteAll()
             }
         })
+        closeMenu()
     }
 
+    override fun onBackPressed() {
+        if (menuShowing) {
+            closeMenu()
+            return
+        }
+        if (NetStateChangeReceiver.getInstance().backgroundDownload) {
+            goHome()
+            return
+        }
+        super.onBackPressed()
+
+    }
+
+    private fun goHome() {
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        intent.addCategory(Intent.CATEGORY_HOME)
+        startActivity(intent)
+
+    }
+
+    override fun finish() {
+        super.finish()
+        mBinding.model!!.pauseAll()
+    }
 
     override fun onCreateNewMediaClicked(view: View) {
         Log.e("hyc-fab", "createNewMedia")
@@ -134,6 +185,7 @@ class MainActivity : AppCompatActivity(), MediaController {
         } else {
             showSpaceNotEnoughDialog(this)
         }
+        closeMenu()
     }
 
     private fun showAddDialog() {
@@ -147,6 +199,7 @@ class MainActivity : AppCompatActivity(), MediaController {
     override fun onPauseAllClicked(view: View) {
         Log.e("hyc-fab", "pauseAll")
         mBinding.model!!.pauseAll()
+        closeMenu()
     }
 
     override fun onResumeAllClicked(view: View) {
@@ -156,6 +209,7 @@ class MainActivity : AppCompatActivity(), MediaController {
         } else {
             showSpaceNotEnoughDialog(this)
         }
+        closeMenu()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -178,7 +232,9 @@ class MainActivity : AppCompatActivity(), MediaController {
             mBinding.llDeleteAll.translationX = mWidth - mBinding.llDeleteAll.x
             mBinding.llPauseAll.translationX = mWidth - mBinding.llPauseAll.x
         }
-
+        mBinding.flBack.isClickable = true
+        mBinding.flBack.isFocusable = true
+        mBinding.flBack.animate().alpha(1f).setDuration(300 + 3 * delayTime).start()
         mBinding.fabMenu.animate().rotation(45f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
         mBinding.llStartAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime).start()
         mBinding.llCreate.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 3).start()
@@ -188,12 +244,14 @@ class MainActivity : AppCompatActivity(), MediaController {
 
     private fun closeMenu() {
         menuShowing = false
+        mBinding.flBack.animate().alpha(0f).setDuration(300 + 3 * delayTime).start()
+        mBinding.flBack.isClickable = false
+        mBinding.flBack.isFocusable = false
         mBinding.fabMenu.animate().rotation(0f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
         mBinding.llStartAll.animate().setDuration(300).translationX(mWidth - mBinding.llStartAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 2).start()
         mBinding.llCreate.animate().setDuration(300).translationX(mWidth - mBinding.llCreate.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(0).start()
         mBinding.llDeleteAll.animate().setDuration(300).translationX(mWidth - mBinding.llDeleteAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime).start()
         mBinding.llPauseAll.animate().setDuration(300).translationX(mWidth - mBinding.llPauseAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 3).start()
-
     }
 
 

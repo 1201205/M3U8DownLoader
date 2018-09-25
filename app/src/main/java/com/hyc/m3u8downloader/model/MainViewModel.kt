@@ -4,7 +4,9 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
 import android.content.Context
+import android.widget.Toast
 import com.hyc.m3u8downloader.DownloadManager
+import com.hyc.m3u8downloader.MainApplication
 import com.hyc.m3u8downloader.view.MainAdapter
 import com.hyc.m3u8downloader.view.MainAdapter2
 import io.reactivex.Observable
@@ -18,7 +20,6 @@ import io.reactivex.schedulers.Schedulers
 class MainViewModel(app: Application) : AndroidViewModel(app) {
     var adapter: MutableLiveData<MainAdapter2> = MutableLiveData()
     var item: MutableLiveData<MediaItem> = MutableLiveData()
-
     fun loadingFormDB(context: Context) {
         Observable.create(ObservableOnSubscribe<MainAdapter2> { emitter ->
             emitter.onNext(MainAdapter2(DownloadManager.getInstance().getAllMedia(), context))
@@ -64,8 +65,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun createItem(name: String, url: String) {
-        DownloadManager.getInstance().createNew(url, name)
-        adapter.value!!.notifyDataSetChanged()
+      var success=  DownloadManager.getInstance().createNew(url, name)
+        if (success) {
+            adapter.value!!.notifyDataSetChanged()
+        } else {
+            Toast.makeText(MainApplication.instance,"此下载任务已存在",Toast.LENGTH_LONG).show()
+        }
     }
 
     fun deleteItem(item: MutableLiveData<MediaItem>) {
@@ -73,4 +78,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         adapter.value!!.notifyDataSetChanged()
     }
 
+    fun reDownload(item: MutableLiveData<MediaItem>){
+        DownloadManager.getInstance().deleteItem(item)
+        adapter.value!!.notifyDataSetChanged()
+    }
 }

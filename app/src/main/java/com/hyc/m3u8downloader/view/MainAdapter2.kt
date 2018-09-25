@@ -9,6 +9,7 @@ import android.databinding.DataBindingUtil
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
+import android.util.Log.e
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +26,7 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
     private var mItems: ArrayList<MutableLiveData<MediaItem>> = items
     private var mContext = context
     private var mItemListener: OnItemClickListener? = null
+    private var mLongClickListener: OnItemLongClickListener? = null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         var inflater = LayoutInflater.from(parent.context)
         var binding = DataBindingUtil.inflate<ItemMainBinding>(inflater, R.layout.item_main, parent, false)
@@ -46,11 +48,16 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
                 binding.executePendingBindings()
             }
         })
+        e("hyc-pic", "index----$position-----${item!!.picPath}")
         binding.btState.setOnClickListener { mItemListener?.let { it.onItemClicked(mItems[position]) } }
+        binding.rlItem.setOnLongClickListener { mLongClickListener?.let { it.onItemLongClicked(mItems[position]) };true }
     }
 
     fun setOnClickListener(listener: OnItemClickListener) {
         mItemListener = listener
+    }
+    fun setOnLongClickListener(listener: OnItemLongClickListener) {
+        mLongClickListener = listener
     }
 
     fun addItem(item: MediaItem) {
@@ -70,7 +77,7 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
     fun change(index: Int) {
         var item = mItems[index]
         var value = item.value
-        value!!.state = index * 10
+//        value!!.state = index * 10
         item.postValue(value)
     }
 
@@ -87,5 +94,9 @@ class MainAdapter2(items: ArrayList<MutableLiveData<MediaItem>>, context: Contex
 
     interface OnItemClickListener {
         fun onItemClicked(item: MutableLiveData<MediaItem>)
+    }
+
+    interface OnItemLongClickListener {
+        fun onItemLongClicked(item: MutableLiveData<MediaItem>)
     }
 }
