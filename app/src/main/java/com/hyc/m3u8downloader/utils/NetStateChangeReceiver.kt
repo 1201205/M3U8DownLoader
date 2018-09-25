@@ -13,8 +13,6 @@ import com.hyc.m3u8downloader.MainApplication
 
 
 class NetStateChangeReceiver : BroadcastReceiver() {
-    var ignoreNetState by Sp("ignore_net_state", false)
-    var backgroundDownload by Sp("background_download", true)
     private var currentState = 0
     private val connectivityManager = MainApplication.instance.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
@@ -52,8 +50,10 @@ class NetStateChangeReceiver : BroadcastReceiver() {
 
             when (currentState) {
                 STATE_NO_CONNECT -> DownloadManager.getInstance().pauseAll()
-//                STATE_CONNECT_WIFI->DownloadManager.getInstance().startAll()
-                STATE_CONNECT_OTHER -> if (!ignoreNetState) {
+                STATE_CONNECT_WIFI -> if (Config.autoWork) {
+                    DownloadManager.getInstance().startAll()
+                }
+                STATE_CONNECT_OTHER -> if (!Config.dataWork) {
                     if (DownloadManager.getInstance().hasDownloadingFiles()) {
                         DownloadManager.getInstance().pauseAll()
                         Toast.makeText(MainApplication.instance, "当前使用非WIFI连接，已自动暂停所有下载", Toast.LENGTH_LONG).show()

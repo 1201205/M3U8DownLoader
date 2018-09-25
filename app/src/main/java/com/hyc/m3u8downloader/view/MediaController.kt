@@ -8,4 +8,5 @@ interface MediaController:MainAdapter2.OnItemClickListener,MainAdapter2.OnItemLo
     fun onResumeAllClicked(view: View)
     fun onDeleteAllClicked(view: View)
     fun onFabClicked(view: View)
+    fun onSettingClicked(view:View)
 }

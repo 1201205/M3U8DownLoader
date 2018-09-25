@@ -31,13 +31,13 @@ import android.widget.Toast
 import com.hyc.m3u8downloader.databinding.ActivityMainBinding
 import com.hyc.m3u8downloader.model.MainViewModel
 import com.hyc.m3u8downloader.model.MediaItem
+import com.hyc.m3u8downloader.utils.Config
 import com.hyc.m3u8downloader.utils.NetStateChangeReceiver
 import com.hyc.m3u8downloader.utils.hasEnoughSpace
 import com.hyc.m3u8downloader.view.*
 import java.io.File
 
 class MainActivity : AppCompatActivity(), MediaController {
-
     private val SDCARD_PERMISSION_R = Manifest.permission.READ_EXTERNAL_STORAGE
     private val SDCARD_PERMISSION_W = Manifest.permission.WRITE_EXTERNAL_STORAGE
     private val PERMISSION_NET = "android.Manifest.permission.ACCESS_NETWORK_STATE"
@@ -71,9 +71,6 @@ class MainActivity : AppCompatActivity(), MediaController {
             it.layoutManager = manager
             (it.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         }
-        Log.e("hyc-notify", NotificationManagerCompat.from(this).areNotificationsEnabled().toString())
-//        NotificationPageHelper.open(this)
-        startService(Intent(this, ForegroundService::class.java))
     }
 
     override fun onItemClicked(item: MutableLiveData<MediaItem>) {
@@ -100,6 +97,10 @@ class MainActivity : AppCompatActivity(), MediaController {
                 mBinding.model!!.deleteItem(item)
             }
         })
+    }
+
+    override fun onSettingClicked(view: View) {
+        startActivity(Intent(this, SettingActivity::class.java))
     }
 
     private fun goToPlay(item: MutableLiveData<MediaItem>) {
@@ -149,7 +150,7 @@ class MainActivity : AppCompatActivity(), MediaController {
             closeMenu()
             return
         }
-        if (NetStateChangeReceiver.getInstance().backgroundDownload) {
+        if (Config.backgroundWork) {
             goHome()
             return
         }
@@ -231,13 +232,15 @@ class MainActivity : AppCompatActivity(), MediaController {
             mBinding.llCreate.translationX = mWidth - mBinding.llCreate.x
             mBinding.llDeleteAll.translationX = mWidth - mBinding.llDeleteAll.x
             mBinding.llPauseAll.translationX = mWidth - mBinding.llPauseAll.x
+            mBinding.llSetting.translationX = mWidth - mBinding.llSetting.x
         }
         mBinding.flBack.isClickable = true
         mBinding.flBack.isFocusable = true
         mBinding.flBack.animate().alpha(1f).setDuration(300 + 3 * delayTime).start()
         mBinding.fabMenu.animate().rotation(45f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
         mBinding.llStartAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime).start()
-        mBinding.llCreate.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 3).start()
+        mBinding.llCreate.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 4).start()
+        mBinding.llSetting.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 3).start()
         mBinding.llDeleteAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 2).start()
         mBinding.llPauseAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(0).start()
     }
@@ -248,10 +251,11 @@ class MainActivity : AppCompatActivity(), MediaController {
         mBinding.flBack.isClickable = false
         mBinding.flBack.isFocusable = false
         mBinding.fabMenu.animate().rotation(0f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
-        mBinding.llStartAll.animate().setDuration(300).translationX(mWidth - mBinding.llStartAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 2).start()
+        mBinding.llStartAll.animate().setDuration(300).translationX(mWidth - mBinding.llStartAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 3).start()
         mBinding.llCreate.animate().setDuration(300).translationX(mWidth - mBinding.llCreate.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(0).start()
-        mBinding.llDeleteAll.animate().setDuration(300).translationX(mWidth - mBinding.llDeleteAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime).start()
-        mBinding.llPauseAll.animate().setDuration(300).translationX(mWidth - mBinding.llPauseAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 3).start()
+        mBinding.llSetting.animate().setDuration(300).translationX(mWidth - mBinding.llSetting.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime).start()
+        mBinding.llDeleteAll.animate().setDuration(300).translationX(mWidth - mBinding.llDeleteAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 2).start()
+        mBinding.llPauseAll.animate().setDuration(300).translationX(mWidth - mBinding.llPauseAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 4).start()
     }
 
 

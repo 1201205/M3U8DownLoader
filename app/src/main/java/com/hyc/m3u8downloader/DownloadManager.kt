@@ -27,7 +27,7 @@ class DownloadManager : IDownloadManager {
     private val mExecutor = ThreadPoolExecutor(0, Integer.MAX_VALUE,
             20L, TimeUnit.SECONDS,
             SynchronousQueue(), DefaultThreadFactory())
-
+    private var inited = false
     override fun createNew(url: String, name: String): Boolean {
         val historyItem = allItems.filter {
             it.value!!.url.equals(url)
@@ -67,16 +67,11 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun startAll() {
+        if (!inited) {
+            return
+        }
         for (item in allItems) {
-            if (item.value!!.state in arrayOf(FAiLED, STOPPED, WAITING)) {
-                if (checkCreateDownloader()) {
-                    createDownloader(item)
-                } else {
-                    item.value!!.state = WAITING
-                    item.postValue(item.value)
-                    waitingItems.add(item)
-                }
-            }
+            resumeItem(item)
         }
     }
 
@@ -133,6 +128,7 @@ class DownloadManager : IDownloadManager {
             }
         }
         allItems = target
+        inited = true
         return target
     }
 
@@ -152,7 +148,15 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun resumeItem(item: MutableLiveData<MediaItem>) {
-        createDownloader(item)
+        if (item.value!!.state in arrayOf(FAiLED, STOPPED, WAITING)) {
+            if (checkCreateDownloader()) {
+                createDownloader(item)
+            } else {
+                item.value!!.state = WAITING
+                item.postValue(item.value)
+                waitingItems.add(item)
+            }
+        }
     }
 
     private fun deleteCacheFiles(parentPath: String?) {
@@ -185,10 +189,13 @@ class DownloadManager : IDownloadManager {
         }
         downloadNext()
     }
+
     override fun reDownloadItem(item: MutableLiveData<MediaItem>) {
         deleteItem(item)
-        createNew(item.value!!.url!!,item.value!!.name!!)
+        allItems.remove(item)
+        createNew(item.value!!.url!!, item.value!!.name!!)
     }
+
     private fun checkCreateDownloader() = downloadingItems.size < getFileCount()
 
     private fun downloadNext() {

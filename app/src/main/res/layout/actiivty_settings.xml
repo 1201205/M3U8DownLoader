@@ -4,18 +4,22 @@
     android:orientation="vertical"
     android:layout_height="match_parent">
     <CheckBox
+        android:id="@+id/cb_background"
         android:text="后台下载"
         android:layout_width="match_parent"
         android:layout_height="60dp" />
     <CheckBox
+        android:id="@+id/cb_4g"
         android:text="非WIFI环境下下载"
         android:layout_width="match_parent"
         android:layout_height="60dp" />
     <CheckBox
+        android:id="@+id/cb_wifi"
         android:text="连接上WIFI自动开始下载"
         android:layout_width="match_parent"
         android:layout_height="60dp" />
     <CheckBox
+        android:id="@+id/cb_foreground"
         android:text="提升App进程优先级(提高App下载稳定性)"
         android:layout_width="match_parent"
         android:layout_height="60dp" />

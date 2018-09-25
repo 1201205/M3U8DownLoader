@@ -1,9 +1,7 @@
 package com.hyc.m3u8downloader
 
 import android.arch.lifecycle.MutableLiveData
-import android.graphics.BitmapFactory
 import android.support.v4.util.SparseArrayCompat
-import android.support.v7.graphics.Palette
 import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
@@ -16,7 +14,6 @@ import java.io.*
 import java.util.ArrayList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 class MediaDownloader : Thread() {
@@ -77,6 +74,10 @@ class MediaDownloader : Thread() {
         }
 
         override fun onGetContentLength(tsFile: TSItem) {
+            if (tsFile.success&&File(tsFile.path).exists()&&File(tsFile.path).length()>=tsFile.total) {
+                Log.e("media_downloader","some error while downloading")
+                return
+            }
             checkArray.put(tsFile.index!!, tsFile.total)
         }
 
@@ -108,10 +109,10 @@ class MediaDownloader : Thread() {
                 lock!!.lock()
                 var ts = getNextTS()
                 if (ts != null) {
-                    writer.write("file '$count.ts'\t\n")
                     if (ts.success) {
                         downloadingTS.remove(ts)
                         count++
+                        checkArray.put(ts.index!!,ts.total)
                         lock!!.unlock()
                         continue
                     }
@@ -123,9 +124,13 @@ class MediaDownloader : Thread() {
                 } else if (map.size() > 0) {
                     var key = map.keyAt(0)
                     var value = map[key]
+                    map.remove(key)
+                    if (downloadingTS.contains(value)) {
+                        lock!!.unlock()
+                        continue
+                    }
                     val request = Request.Builder().url(value.url!!).build()
                     var call = client!!.newCall(request)
-                    map.remove(key)
                     downloadingTS.add(value)
                     value.path = getFilePath(key)
                     executor!!.execute(M3u8Downloader(value, callBack, call))
@@ -137,6 +142,11 @@ class MediaDownloader : Thread() {
                         if (value == null || value == 0L) {
                             value = allTs!![key].total
                         }
+//                        if (value == 0L) {
+//                            map.put(key, allTs!![key])
+//                            Log.d("media_downloader", " the $key file download failed  it's size = $value ")
+//                            break
+//                        }
                         var file = File(getFilePath(key))
                         var length = file.length()
                         if (length >= value) {
@@ -155,6 +165,12 @@ class MediaDownloader : Thread() {
                         }
                     }
                     lock!!.unlock()
+                }
+            }
+            //无法避免一些ts文件总长度为0的情况
+            for (item in allTs) {
+                if (item.total > 0) {
+                    writer.write("file '${item.index}.ts'\t\n")
                 }
             }
             writer.flush()

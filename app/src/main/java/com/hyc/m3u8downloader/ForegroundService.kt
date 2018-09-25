@@ -30,7 +30,7 @@ class ForegroundService : Service() {
         //设置摘要
         mBuilder.setSubText("这是摘要")
         //设置是否点击消息后自动clean
-        mBuilder.setAutoCancel(true)
+        mBuilder.setAutoCancel(false)
         //显示指定文本
         mBuilder.setContentInfo("Info")
         //与setContentInfo类似，但如果设置了setContentInfo则无效果

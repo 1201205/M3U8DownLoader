@@ -7,6 +7,7 @@ import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import com.hyc.m3u8downloader.utils.Config
 import com.hyc.m3u8downloader.utils.NetStateChangeReceiver
 
 fun showAddDialog(activity: Activity, listener: GetTextListener) {
@@ -43,7 +44,7 @@ fun showDeleteAllDialog(activity: Activity, listener: PositiveClickListener) {
 
 fun showNotWifiDialog(activity: Activity, listener: PositiveClickListener) {
     val builder = AlertDialog.Builder(activity)
-    builder.setTitle("提示")
+    builder.setTitle("警告")
     builder.setMessage("当前使用非WIFI连接，下载会消耗大量数据流量！")
     builder.setNegativeButton("取消", null)
     builder.setPositiveButton("下载") { _, _ ->
@@ -51,10 +52,37 @@ fun showNotWifiDialog(activity: Activity, listener: PositiveClickListener) {
     }
     builder.setNeutralButton("下载并不再提示") { _, _ ->
         listener.onPositiveClicked()
-        NetStateChangeReceiver.getInstance().ignoreNetState = true
+        Config.dataWork = true
     }
     builder.show()
 }
+
+fun show4GDialog(activity: Activity, listener: PositiveClickListener,negativeClickListener: NegativeClickListener) {
+    val builder = AlertDialog.Builder(activity)
+    builder.setTitle("警告")
+    builder.setMessage("开启此选项，将使用非WIFI网络下载，会消耗大量数据流量！")
+    builder.setNegativeButton("取消"){ _, _ ->
+        negativeClickListener.onNegativeClicked()
+    }
+    builder.setPositiveButton("我知道了") { _, _ ->
+        listener.onPositiveClicked()
+    }
+    builder.show()
+}
+
+fun showForegroundDialog(activity: Activity, listener: PositiveClickListener,negativeClickListener: NegativeClickListener) {
+    val builder = AlertDialog.Builder(activity)
+    builder.setTitle("提示")
+    builder.setMessage("App将弹出通知，降低App被系统回收的风险，提升App下载过程中的稳定性，可能需要进行手动授权")
+    builder.setNegativeButton("取消"){ _, _ ->
+        negativeClickListener.onNegativeClicked()
+    }
+    builder.setPositiveButton("确定") { _, _ ->
+        listener.onPositiveClicked()
+    }
+    builder.show()
+}
+
 
 fun showReDownloadDialog(activity: Activity, listener: PositiveClickListener) {
     val builder = AlertDialog.Builder(activity)
@@ -84,4 +112,8 @@ interface GetTextListener {
 
 interface PositiveClickListener {
     fun onPositiveClicked()
+}
+
+interface NegativeClickListener {
+    fun onNegativeClicked()
 }

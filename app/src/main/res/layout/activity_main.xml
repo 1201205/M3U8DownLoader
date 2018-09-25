@@ -2,24 +2,28 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
     <data>
+
         <variable
             name="controller"
-            type="com.hyc.m3u8downloader.view.MediaController"/>
+            type="com.hyc.m3u8downloader.view.MediaController" />
+
         <variable
             name="model"
-            type="com.hyc.m3u8downloader.model.MainViewModel"/>
+            type="com.hyc.m3u8downloader.model.MainViewModel" />
     </data>
+
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
         <android.support.v7.widget.RecyclerView
-            android:adapter="@{model.adapter}"
             android:id="@+id/rv_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:adapter="@{model.adapter}"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <android.support.constraint.ConstraintLayout
@@ -27,14 +31,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".MainActivity">
+
             <FrameLayout
-                android:alpha="0"
                 android:id="@+id/fl_back"
-                android:background="#87ffffff"
-                android:focusable="true"
-                android:clickable="true"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent"
+                android:alpha="0"
+                android:background="#87ffffff" />
+
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/fab_menu"
                 android:layout_width="wrap_content"
@@ -42,9 +46,9 @@
                 android:layout_marginBottom="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginRight="16dp"
+                android:onClick="@{controller::onFabClicked}"
                 app:backgroundTint="@color/colorPrimary"
                 app:fabSize="normal"
-                android:onClick="@{controller::onFabClicked}"
                 app:layout_constraintBottom_toBottomOf="@+id/activity_main"
                 app:layout_constraintRight_toRightOf="@+id/activity_main"
                 app:srcCompat="@mipmap/fab_add" />
@@ -52,7 +56,7 @@
             <LinearLayout
                 android:id="@+id/ll_create"
                 style="@style/MainMenu"
-                app:layout_constraintBottom_toTopOf="@+id/ll_delete_all"
+                app:layout_constraintBottom_toTopOf="@+id/ll_setting"
                 app:layout_constraintRight_toRightOf="@+id/activity_main">
 
                 <TextView
@@ -63,11 +67,32 @@
                     android:id="@+id/fab_create"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:onClick="@{controller::onCreateNewMediaClicked}"
                     app:backgroundTint="@color/colorPrimary"
                     app:elevation="1dp"
                     app:fabSize="mini"
-                    android:onClick="@{controller::onCreateNewMediaClicked}"
                     app:srcCompat="@mipmap/ico_create" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_setting"
+                style="@style/MainMenu"
+                app:layout_constraintBottom_toTopOf="@+id/ll_delete_all"
+                app:layout_constraintRight_toRightOf="@+id/activity_main">
+
+                <TextView
+                    style="@style/MainMenuText"
+                    android:text="@string/setting" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fab_setting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="@{controller::onSettingClicked}"
+                    app:backgroundTint="@color/colorPrimary"
+                    app:elevation="1dp"
+                    app:fabSize="mini"
+                    app:srcCompat="@mipmap/ico_setting" />
             </LinearLayout>
 
             <LinearLayout
@@ -82,9 +107,9 @@
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_delete"
-                    android:onClick="@{controller::onDeleteAllClicked}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:onClick="@{controller::onDeleteAllClicked}"
                     app:backgroundTint="@color/colorPrimary"
                     app:elevation="1dp"
                     app:fabSize="mini"
@@ -103,9 +128,9 @@
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_start"
-                    android:onClick="@{controller::onResumeAllClicked}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:onClick="@{controller::onResumeAllClicked}"
                     app:backgroundTint="@color/colorPrimary"
                     app:elevation="1dp"
                     app:fabSize="mini"
@@ -125,15 +150,14 @@
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_pause"
-                    android:onClick="@{controller::onPauseAllClicked}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:onClick="@{controller::onPauseAllClicked}"
                     app:backgroundTint="@color/colorPrimary"
                     app:elevation="1dp"
                     app:fabSize="mini"
                     app:srcCompat="@mipmap/ico_pause_all" />
             </LinearLayout>
-
         </android.support.constraint.ConstraintLayout>
     </android.support.design.widget.CoordinatorLayout>
 </layout>
