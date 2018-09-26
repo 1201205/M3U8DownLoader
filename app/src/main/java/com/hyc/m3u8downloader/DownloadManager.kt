@@ -21,8 +21,8 @@ class DownloadManager : IDownloadManager {
     private val waitingItems: ArrayList<MutableLiveData<MediaItem>> = ArrayList()
     private lateinit var allItems: ArrayList<MutableLiveData<MediaItem>>
     private var maxDownloadingCount by Sp("max_downloading_count", 3)
-    private var maxThreadCount by Sp("max_thread_count", 6)
-    private val mClient = OkHttpClient.Builder().readTimeout(1, TimeUnit.MINUTES).build()
+    private var maxThreadCount by Sp("max_thread_count", 20)
+    private val mClient = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
     private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultLock>()//因为不想添加暂停中状态
     private val mExecutor = ThreadPoolExecutor(0, Integer.MAX_VALUE,
             20L, TimeUnit.SECONDS,

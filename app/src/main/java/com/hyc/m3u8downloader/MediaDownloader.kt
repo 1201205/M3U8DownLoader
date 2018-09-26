@@ -76,6 +76,7 @@ class MediaDownloader : Thread() {
         override fun onGetContentLength(tsFile: TSItem) {
             if (tsFile.success && File(tsFile.path).exists() && File(tsFile.path).length() >= tsFile.total) {
                 Log.e("media_downloader", "some error while downloading")
+                checkArray.remove(tsFile.index!!)
                 return
             }
             checkArray.put(tsFile.index!!, tsFile.total)
@@ -102,7 +103,9 @@ class MediaDownloader : Thread() {
         var fw = FileWriter(file)
         var writer = BufferedWriter(fw)
         try {
+            loop@
             while (isDownloading && !isInterrupted) {
+                Log.e("media_downloader","enter loop")
                 if (copyTSItems.size == 0 && map.size() == 0 && checkArray.size() == 0) {
                     break
                 }
@@ -135,7 +138,19 @@ class MediaDownloader : Thread() {
                     value.path = getFilePath(key)
                     executor!!.execute(M3u8Downloader(value, callBack, call))
                 } else {
+                   while (lock!!.getLiveCount()!=maxThreadCount-1){
+                       Thread.sleep(100)
+                       if (map.size() > 0) {
+                           lock!!.unlock()
+                           continue@loop
+                       }
+                       Log.e("media_downloader","wait for other thread and it's size${lock!!.getLiveCount()}")
+                   }
+                    Log.e("media_downloader","enter and check ")
                     //检查下载
+//                    if (lock!!.getLiveCount() == maxThreadCount - 1) {
+//                        lock!!.changeToSinge(maxThreadCount - 1)
+//                    }
                     while (checkArray.size() > 0) {
                         var key = checkArray.keyAt(0)
                         var value = checkArray[key]
@@ -150,8 +165,10 @@ class MediaDownloader : Thread() {
                         var file = File(getFilePath(key))
                         var length = file.length()
                         if (length >= value) {
-                            checkArray.remove(key)
-                            Log.d("media_downloader", "check the $key file download success  it's size = $value")
+                           var start= checkArray.size()
+                            checkArray.removeAt(0)
+                            var end= checkArray.size()
+                            Log.d("media_downloader", "check the $key download success it's size = $value  start=$start end=$end")
                         } else {
                             if (downloadingTS.contains(allTs!![key])) {
                                 //等待当前下载完毕

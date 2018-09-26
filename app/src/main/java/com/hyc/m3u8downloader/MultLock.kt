@@ -7,8 +7,9 @@ import java.util.concurrent.locks.Lock
 
 class MultLock(var max: Int) : Lock {
     var sync: Sync = Sync(max)
+    var threadCount=1
     override fun lock() {
-        sync.acquireShared(1)
+        sync.acquireShared(threadCount)
 //        throw UnsupportedOperationException("please use tryLock")
     }
 
@@ -21,11 +22,13 @@ class MultLock(var max: Int) : Lock {
     }
 
     override fun unlock() {
-        sync.releaseShared(1)
+        sync.releaseShared(threadCount)
     }
 
     fun getLiveCount() = sync.getLiveState()
-
+    fun changeToSinge(count:Int){
+        threadCount=count
+    }
     override fun lockInterruptibly() {
         throw UnsupportedOperationException()
     }

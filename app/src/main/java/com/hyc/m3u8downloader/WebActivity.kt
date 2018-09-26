@@ -14,21 +14,29 @@ import java.util.ArrayList
 
 class WebActivity : AppCompatActivity() {
     lateinit var webView: WebView
+    val paraser=UrlParaser()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actiivty_web)
         webView = findViewById<WebView>(R.id.wb_content)
         init()
-        webView.postDelayed({UrlParaser(list).start()},20000)
+        paraser.start()
     }
 
+    override fun onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack()
+        } else {
+            super.onBackPressed()
+        }
+    }
     val list = ArrayList<String>()
     @SuppressLint("SetJavaScriptEnabled")
     private fun init() {
         webView.webViewClient = object : WebViewClient() {
             override fun onLoadResource(view: WebView?, url: String?) {
                 Log.e("hyc-iii", url)
-                list.add(url!!)
+                paraser.addUrl(url!!)
                 super.onLoadResource(view, url)
             }
         }
@@ -47,7 +55,7 @@ class WebActivity : AppCompatActivity() {
         //javascriptInterface = new JavascriptInterface();
         //mWebView.addJavascriptInterface(javascriptInterface, "java2js_laole918");
 
-        webView.loadUrl("http://youku.com")
+        webView.loadUrl("https://youku.com")
 
     }
 
