@@ -5,4 +5,6 @@
     <string name="start_all">开始所有</string>
     <string name="pause_all">全部暂停</string>
     <string name="setting">应用设置</string>
+    <string name="input_name">请输入名称，不输入会自动生成</string>
+    <string name="input_url">请输入下载地址</string>
 </resources>

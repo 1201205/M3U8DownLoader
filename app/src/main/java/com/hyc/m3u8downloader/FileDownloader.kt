@@ -56,7 +56,6 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                     return
                 }
                 mItem = item
-                it.parentPath = rootPath + MD5Util.crypt(it.url)
                 downLoad(it.url!!, callBack)
             } else {
                 it.state = DownloadState.DOWNLOADING

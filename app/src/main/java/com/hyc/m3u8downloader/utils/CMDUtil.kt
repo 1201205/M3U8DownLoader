@@ -63,8 +63,8 @@ class CMDUtil private constructor() {
 //        var process = Runtime.getRuntime().exec("$absFilePath -i $mediaPath -r 1 -t 1 -y -f image2  -s $width*$height $targetPath")
         process.waitFor()
         Log.e("hyc-cmd", "${process.exitValue()}")
-        convertInputStreamToString(process.inputStream)
-        convertInputStreamToString(process.errorStream)
+//        convertInputStreamToString(process.inputStream)
+//        convertInputStreamToString(process.errorStream)
         Log.e("hyc-cmd", "end--")
     }
 

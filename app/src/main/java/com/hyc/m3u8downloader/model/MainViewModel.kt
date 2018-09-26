@@ -7,14 +7,10 @@ import android.content.Context
 import android.widget.Toast
 import com.hyc.m3u8downloader.DownloadManager
 import com.hyc.m3u8downloader.MainApplication
-import com.hyc.m3u8downloader.view.MainAdapter
 import com.hyc.m3u8downloader.view.MainAdapter2
 import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
 import io.reactivex.ObservableOnSubscribe
-import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -65,11 +61,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun createItem(name: String, url: String) {
-      var success=  DownloadManager.getInstance().createNew(url, name)
+        var success = DownloadManager.getInstance().createNew(url, name)
         if (success) {
             adapter.value!!.notifyDataSetChanged()
         } else {
-            Toast.makeText(MainApplication.instance,"此下载任务已存在",Toast.LENGTH_LONG).show()
+            Toast.makeText(MainApplication.instance, "此下载任务已存在", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -78,7 +74,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         adapter.value!!.notifyDataSetChanged()
     }
 
-    fun reDownload(item: MutableLiveData<MediaItem>){
+    fun hasItems() = DownloadManager.getInstance().hasItems()
+    fun reDownload(item: MutableLiveData<MediaItem>) {
         DownloadManager.getInstance().deleteItem(item)
         adapter.value!!.notifyDataSetChanged()
     }

@@ -22,4 +22,5 @@ interface IDownloadManager {
     fun resumeItem(item: MutableLiveData<MediaItem>)
     fun pauseItem(item: MutableLiveData<MediaItem>)
     fun reDownloadItem(item: MutableLiveData<MediaItem>)
+    fun hasItems():Boolean
 }

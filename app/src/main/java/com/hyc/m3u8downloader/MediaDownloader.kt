@@ -74,8 +74,8 @@ class MediaDownloader : Thread() {
         }
 
         override fun onGetContentLength(tsFile: TSItem) {
-            if (tsFile.success&&File(tsFile.path).exists()&&File(tsFile.path).length()>=tsFile.total) {
-                Log.e("media_downloader","some error while downloading")
+            if (tsFile.success && File(tsFile.path).exists() && File(tsFile.path).length() >= tsFile.total) {
+                Log.e("media_downloader", "some error while downloading")
                 return
             }
             checkArray.put(tsFile.index!!, tsFile.total)
@@ -112,7 +112,7 @@ class MediaDownloader : Thread() {
                     if (ts.success) {
                         downloadingTS.remove(ts)
                         count++
-                        checkArray.put(ts.index!!,ts.total)
+                        checkArray.put(ts.index!!, ts.total)
                         lock!!.unlock()
                         continue
                     }
@@ -180,7 +180,12 @@ class MediaDownloader : Thread() {
             if (mItem.value!!.state == DownloadState.STOPPED || isInterrupted) {
                 return
             }
-            val mp4Path = "$path/main.mp4"
+
+            var fileName = mItem.value!!.name
+            if (TextUtils.isEmpty(fileName)) {
+                fileName = "main"
+            }
+            val mp4Path = "$path/$fileName.mp4"
             mItem.value!!.state = DownloadState.MERGING
             mItem.postValue(mItem.value)
             CMDUtil.instance.executeMerge(file!!.absolutePath, mp4Path)

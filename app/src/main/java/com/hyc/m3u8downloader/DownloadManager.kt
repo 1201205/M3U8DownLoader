@@ -38,7 +38,12 @@ class DownloadManager : IDownloadManager {
 
         val item = MediaItem()
         item.url = url
-        item.parentPath = rootPath + MD5Util.crypt(item.url)
+        if (TextUtils.isEmpty(name)) {
+            item.parentPath = rootPath + MD5Util.crypt(item.url)
+        } else {
+            item.parentPath = rootPath + name
+        }
+        item.name = name
         item.state = WAITING
         item.picPath = ""
         val liveData = MyLiveData()
@@ -148,6 +153,9 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun resumeItem(item: MutableLiveData<MediaItem>) {
+        if (item.value == null) {
+            return
+        }
         if (item.value!!.state in arrayOf(FAiLED, STOPPED, WAITING)) {
             if (checkCreateDownloader()) {
                 createDownloader(item)
@@ -196,6 +204,7 @@ class DownloadManager : IDownloadManager {
         createNew(item.value!!.url!!, item.value!!.name!!)
     }
 
+    override fun hasItems(): Boolean = !allItems.isEmpty()
     private fun checkCreateDownloader() = downloadingItems.size < getFileCount()
 
     private fun downloadNext() {

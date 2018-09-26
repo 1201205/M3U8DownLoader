@@ -2,15 +2,12 @@ package com.hyc.m3u8downloader.view
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.CheckBox
 import com.hyc.m3u8downloader.ForegroundService
 import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.utils.Config
-import com.hyc.m3u8downloader.utils.NetStateChangeReceiver
 import com.hyc.m3u8downloader.utils.NotificationUtil
-import kotlinx.android.synthetic.main.actiivty_settings.view.*
 
 class SettingActivity : AppCompatActivity() {
     private lateinit var cbWifi: CheckBox

@@ -1,13 +1,9 @@
 package com.hyc.m3u8downloader
 
 import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
@@ -16,8 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -44,7 +38,8 @@ class MainActivity : AppCompatActivity(), MediaController {
     private val mRequestCode = 100
     private lateinit var mBinding: ActivityMainBinding
     private var mWidth: Int = 0
-    private val delayTime = 80L
+    private val delayTime = 40L
+    private val animTime = 300L
     private var menuShowing = false
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,11 +132,13 @@ class MainActivity : AppCompatActivity(), MediaController {
 
     override fun onDeleteAllClicked(view: View) {
         Log.e("hyc-fab", "deleteAll")
-        showDeleteAllDialog(this, object : PositiveClickListener {
-            override fun onPositiveClicked() {
-                mBinding.model!!.deleteAll()
-            }
-        })
+        if (mBinding.model!!.hasItems()) {
+            showDeleteAllDialog(this, object : PositiveClickListener {
+                override fun onPositiveClicked() {
+                    mBinding.model!!.deleteAll()
+                }
+            })
+        }
         closeMenu()
     }
 
@@ -191,8 +188,8 @@ class MainActivity : AppCompatActivity(), MediaController {
 
     private fun showAddDialog() {
         showAddDialog(this, object : GetTextListener {
-            override fun onGetText(url: String) {
-                mBinding.model!!.createItem("1111", url)
+            override fun onGetText(url: String, name: String) {
+                mBinding.model!!.createItem(name, url)
             }
         })
     }
@@ -236,26 +233,36 @@ class MainActivity : AppCompatActivity(), MediaController {
         }
         mBinding.flBack.isClickable = true
         mBinding.flBack.isFocusable = true
-        mBinding.flBack.animate().alpha(1f).setDuration(300 + 3 * delayTime).start()
-        mBinding.fabMenu.animate().rotation(45f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
-        mBinding.llStartAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime).start()
-        mBinding.llCreate.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 4).start()
-        mBinding.llSetting.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 3).start()
-        mBinding.llDeleteAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(delayTime * 2).start()
-        mBinding.llPauseAll.animate().setDuration(300).translationX(0f).alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(0).start()
+        mBinding.flBack.animate().alpha(1f).setDuration(animTime + 3 * delayTime).start()
+        mBinding.fabMenu.animate().rotation(45f).setDuration(animTime).setInterpolator(OvershootInterpolator()).start()
+        mBinding.llStartAll.animate().setDuration(animTime).translationX(0f).alpha(1f).setStartDelay(delayTime).start()
+        mBinding.llCreate.animate().setDuration(animTime).translationX(0f).alpha(1f).setStartDelay(delayTime * 4).start()
+        mBinding.llSetting.animate().setDuration(animTime).translationX(0f).alpha(1f).setStartDelay(delayTime * 3).start()
+        mBinding.llDeleteAll.animate().setDuration(animTime).translationX(0f).alpha(1f).setStartDelay(delayTime * 2).start()
+        mBinding.llPauseAll.animate().setDuration(animTime).translationX(0f).alpha(1f).setStartDelay(0).start()
+        mBinding.fabStart.isClickable = true
+        mBinding.fabCreate.isClickable = true
+        mBinding.fabSetting.isClickable = true
+        mBinding.fabDelete.isClickable = true
+        mBinding.fabPause.isClickable = true
     }
 
     private fun closeMenu() {
         menuShowing = false
-        mBinding.flBack.animate().alpha(0f).setDuration(300 + 3 * delayTime).start()
+        mBinding.flBack.animate().alpha(0f).setDuration(animTime + 3 * delayTime).start()
         mBinding.flBack.isClickable = false
         mBinding.flBack.isFocusable = false
-        mBinding.fabMenu.animate().rotation(0f).setDuration(300).setInterpolator(OvershootInterpolator()).start()
-        mBinding.llStartAll.animate().setDuration(300).translationX(mWidth - mBinding.llStartAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 3).start()
-        mBinding.llCreate.animate().setDuration(300).translationX(mWidth - mBinding.llCreate.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(0).start()
-        mBinding.llSetting.animate().setDuration(300).translationX(mWidth - mBinding.llSetting.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime).start()
-        mBinding.llDeleteAll.animate().setDuration(300).translationX(mWidth - mBinding.llDeleteAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 2).start()
-        mBinding.llPauseAll.animate().setDuration(300).translationX(mWidth - mBinding.llPauseAll.x).alpha(0f).scaleX(0f).scaleY(0f).setStartDelay(delayTime * 4).start()
+        mBinding.fabMenu.animate().rotation(0f).setDuration(animTime).setInterpolator(OvershootInterpolator()).start()
+        mBinding.llStartAll.animate().setDuration(animTime).translationX(mWidth - mBinding.llStartAll.x).alpha(0f).setStartDelay(delayTime * 3).start()
+        mBinding.llCreate.animate().setDuration(animTime).translationX(mWidth - mBinding.llCreate.x).alpha(0f).setStartDelay(0).start()
+        mBinding.llSetting.animate().setDuration(animTime).translationX(mWidth - mBinding.llSetting.x).alpha(0f).setStartDelay(delayTime).start()
+        mBinding.llDeleteAll.animate().setDuration(animTime).translationX(mWidth - mBinding.llDeleteAll.x).alpha(0f).setStartDelay(delayTime * 2).start()
+        mBinding.llPauseAll.animate().setDuration(animTime).translationX(mWidth - mBinding.llPauseAll.x).alpha(0f).setStartDelay(delayTime * 4).start()
+        mBinding.fabStart.isClickable = false
+        mBinding.fabCreate.isClickable = false
+        mBinding.fabSetting.isClickable = false
+        mBinding.fabDelete.isClickable = false
+        mBinding.fabPause.isClickable = false
     }
 
 

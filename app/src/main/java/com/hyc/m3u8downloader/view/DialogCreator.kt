@@ -5,20 +5,24 @@ import android.content.DialogInterface
 import android.os.Environment
 import android.support.v7.app.AlertDialog
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
+import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.utils.Config
 import com.hyc.m3u8downloader.utils.NetStateChangeReceiver
 
 fun showAddDialog(activity: Activity, listener: GetTextListener) {
     val builder = AlertDialog.Builder(activity)
     builder.setTitle("新建下载")
-    builder.setMessage("输入m3u8下载地址")
-    val editText = EditText(activity)
-    builder.setView(editText)
+    val viewGroup = LayoutInflater.from(activity).inflate(R.layout.dialog_input, null)
+    val etName = viewGroup.findViewById<EditText>(R.id.et_name)
+    val etUrl = viewGroup.findViewById<EditText>(R.id.et_url)
+
+    builder.setView(viewGroup)
     builder.setNegativeButton("取消", null)
     builder.setPositiveButton("确定") { _, _ ->
-        listener.onGetText(editText.text.toString())
+        listener.onGetText(etUrl.text.toString(), etName.text.toString())
     }
     builder.show()
 }
@@ -29,6 +33,7 @@ fun showSpaceNotEnoughDialog(activity: Activity) {
     builder.setTitle("存储空间不足")
     builder.setMessage("设备目前存储空间不足，无法创建下载，请清理后重试!")
     builder.setPositiveButton("确定", null)
+    builder.show()
 }
 
 fun showDeleteAllDialog(activity: Activity, listener: PositiveClickListener) {
@@ -57,11 +62,11 @@ fun showNotWifiDialog(activity: Activity, listener: PositiveClickListener) {
     builder.show()
 }
 
-fun show4GDialog(activity: Activity, listener: PositiveClickListener,negativeClickListener: NegativeClickListener) {
+fun show4GDialog(activity: Activity, listener: PositiveClickListener, negativeClickListener: NegativeClickListener) {
     val builder = AlertDialog.Builder(activity)
     builder.setTitle("警告")
     builder.setMessage("开启此选项，将使用非WIFI网络下载，会消耗大量数据流量！")
-    builder.setNegativeButton("取消"){ _, _ ->
+    builder.setNegativeButton("取消") { _, _ ->
         negativeClickListener.onNegativeClicked()
     }
     builder.setPositiveButton("我知道了") { _, _ ->
@@ -70,11 +75,11 @@ fun show4GDialog(activity: Activity, listener: PositiveClickListener,negativeCli
     builder.show()
 }
 
-fun showForegroundDialog(activity: Activity, listener: PositiveClickListener,negativeClickListener: NegativeClickListener) {
+fun showForegroundDialog(activity: Activity, listener: PositiveClickListener, negativeClickListener: NegativeClickListener) {
     val builder = AlertDialog.Builder(activity)
     builder.setTitle("提示")
-    builder.setMessage("App将弹出通知，降低App被系统回收的风险，提升App下载过程中的稳定性，可能需要进行手动授权")
-    builder.setNegativeButton("取消"){ _, _ ->
+    builder.setMessage("App将弹出通知，从而在一定程度上降低App被系统回收的风险，提升App在后台下载过程中的稳定性，可能需要进行手动授权")
+    builder.setNegativeButton("取消") { _, _ ->
         negativeClickListener.onNegativeClicked()
     }
     builder.setPositiveButton("确定") { _, _ ->
@@ -95,7 +100,7 @@ fun showReDownloadDialog(activity: Activity, listener: PositiveClickListener) {
     builder.show()
 }
 
-fun showDeleteItemDialog(activity: Activity, listener: PositiveClickListener){
+fun showDeleteItemDialog(activity: Activity, listener: PositiveClickListener) {
     val builder = AlertDialog.Builder(activity)
     builder.setTitle("提示")
     builder.setMessage("是否删除该资源？")
@@ -107,7 +112,7 @@ fun showDeleteItemDialog(activity: Activity, listener: PositiveClickListener){
 }
 
 interface GetTextListener {
-    fun onGetText(url: String)
+    fun onGetText(url: String, name: String)
 }
 
 interface PositiveClickListener {
