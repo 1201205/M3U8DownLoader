@@ -156,7 +156,7 @@ class DownloadManager : IDownloadManager {
         if (item.value == null) {
             return
         }
-        if (item.value!!.state in arrayOf(FAiLED, STOPPED, WAITING)) {
+        if (item.value!!.state in arrayOf(FAILED, STOPPED, WAITING)) {
             if (checkCreateDownloader()) {
                 createDownloader(item)
             } else {
@@ -209,6 +209,7 @@ class DownloadManager : IDownloadManager {
 
     private fun downloadNext() {
         if (waitingItems.isEmpty()) {
+            ForegroundService.Helper.stopService()
             return
         }
         createDownloader(waitingItems.removeAt(0))

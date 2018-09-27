@@ -1,9 +1,12 @@
 package com.hyc.m3u8downloader.view
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.CheckBox
+import android.widget.SeekBar
+import android.widget.TextView
 import com.hyc.m3u8downloader.ForegroundService
 import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.utils.Config
@@ -14,6 +17,10 @@ class SettingActivity : AppCompatActivity() {
     private lateinit var cb4G: CheckBox
     private lateinit var cbBackground: CheckBox
     private lateinit var cbForeground: CheckBox
+    private lateinit var sbThread: SeekBar
+    private lateinit var sbFile: SeekBar
+    private lateinit var tvThread: TextView
+    private lateinit var tvFile: TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actiivty_settings)
@@ -21,6 +28,10 @@ class SettingActivity : AppCompatActivity() {
         cb4G = findViewById(R.id.cb_4g)
         cbBackground = findViewById(R.id.cb_background)
         cbForeground = findViewById(R.id.cb_foreground)
+        sbThread = findViewById(R.id.sb_thread)
+        sbFile = findViewById(R.id.sb_file)
+        tvThread = findViewById(R.id.tv_thread)
+        tvFile = findViewById(R.id.tv_file)
         init()
     }
 
@@ -60,7 +71,7 @@ class SettingActivity : AppCompatActivity() {
                         cbForeground.isChecked = true
                         Config.foregroundWork = true
                         if (NotificationUtil.checkNotifyPermissionAndJump(this@SettingActivity)) {
-                            startService(Intent(this@SettingActivity,ForegroundService::class.java))
+                            startService(Intent(this@SettingActivity, ForegroundService::class.java))
                         }
 
                     }
@@ -77,5 +88,36 @@ class SettingActivity : AppCompatActivity() {
             cbWifi.isChecked = cbWifi.isChecked
             Config.autoWork = cbWifi.isChecked
         }
+        tvThread.text = "文件最大下载线程数量：${Config.maxThread}"
+        sbThread.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Config.maxThread = progress + 1
+                tvThread.text = "文件最大下载线程数量：${progress + 1}"
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+        })
+        sbThread.progress = Config.maxThread - 1
+
+        tvFile.text = "最大同时下载文件数量：${Config.maxFile}"
+        sbFile.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Config.maxFile = progress + 1
+                tvFile.text = "最大同时下载文件数量：${progress + 1}"
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+        })
+        sbFile.progress = Config.maxFile - 1
+
+
     }
 }

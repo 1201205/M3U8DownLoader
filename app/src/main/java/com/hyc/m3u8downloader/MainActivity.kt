@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity(), MediaController {
     override fun onItemClicked(item: MutableLiveData<MediaItem>) {
         when (item.value!!.state) {
             DownloadState.DOWNLOADING, DownloadState.WAITING -> mBinding.model!!.pauseItem(item)
-            DownloadState.STOPPED, DownloadState.FAiLED -> {
+            DownloadState.STOPPED, DownloadState.FAILED -> {
                 when (NetStateChangeReceiver.getInstance().getNetState()) {
                     NetStateChangeReceiver.STATE_NO_CONNECT -> Toast.makeText(this, "当前无法连接网络，请连接后再试", Toast.LENGTH_LONG).show()
                     NetStateChangeReceiver.STATE_CONNECT_WIFI -> mBinding.model!!.resumeItem(item)
@@ -184,6 +184,7 @@ class MainActivity : AppCompatActivity(), MediaController {
             showSpaceNotEnoughDialog(this)
         }
         closeMenu()
+
     }
 
     private fun showAddDialog() {

@@ -9,4 +9,9 @@ object Config {
     var autoWork by Sp("auto_work", true)
     @JvmStatic
     var foregroundWork by Sp("foreground_work", false)
+
+    @JvmStatic
+    var maxThread by Sp("max_thread", 8)
+    @JvmStatic
+    var maxFile by Sp("maxFile", 4)
 }

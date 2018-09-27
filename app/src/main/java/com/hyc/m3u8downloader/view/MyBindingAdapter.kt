@@ -34,7 +34,7 @@ fun updateProgress(view: TextView, downloadCount: Int, totalCount: Int, state: D
         DownloadState.STOPPED -> view.text = "已暂停"
         DownloadState.SUCCESS -> view.text = "已完成"
         DownloadState.MERGING -> view.text = "文件合成中"
-        DownloadState.FAiLED -> view.text = "下载失败"
+        DownloadState.FAILED -> view.text = "下载失败"
     }
 }
 
