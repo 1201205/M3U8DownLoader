@@ -8,6 +8,7 @@ import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.model.MediaItemDao
 import com.hyc.m3u8downloader.model.TSItem
 import com.hyc.m3u8downloader.utils.CMDUtil
+import com.hyc.m3u8downloader.utils.Config
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.*
@@ -29,7 +30,7 @@ class MediaDownloader : Thread() {
      */
     private var executor: ExecutorService? = null
     private var client: OkHttpClient? = null
-    private var maxThreadCount: Int = DownloadManager.getInstance().getThreadCount()
+    private var maxThreadCount: Int = Config.maxThread
     private var isDownloading = false
     private var lock: MultLock? = null
     var list: List<String>? = null
@@ -202,7 +203,7 @@ class MediaDownloader : Thread() {
             if (TextUtils.isEmpty(fileName)) {
                 fileName = "main"
             }
-            val mp4Path = "$path/$fileName.mp4"
+            val mp4Path = "$path/$fileName.ts"
             mItem.value!!.state = DownloadState.MERGING
             mItem.postValue(mItem.value)
             CMDUtil.instance.executeMerge(file!!.absolutePath, mp4Path)
@@ -210,7 +211,7 @@ class MediaDownloader : Thread() {
             mItem.value!!.mp4Path = mp4Path
             mItem.postValue(mItem.value)
             Log.e("hyc-media", "success")
-            deleteFile(File(mItem.value!!.parentPath))
+//            deleteFile(File(mItem.value!!.parentPath))
             MediaItemDao.deleteTSByItem(mItem.value!!)
             mDownloadCallBack.onDownloadSuccess(mItem)
         } catch (e: Exception) {

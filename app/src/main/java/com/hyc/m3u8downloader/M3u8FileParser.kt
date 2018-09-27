@@ -8,10 +8,12 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.net.URL
 import java.util.ArrayList
 
 class M3u8FileParser {
     fun parse(id: Long, url: String, file: File, callBack: ParseCallBack) {
+        Log.d("hyc-parse", "input url--$url")
         val uri = Uri.parse(url)
         //目前默认使用http  因为https 很慢
         val host = "${uri.scheme}://${uri.host}"
@@ -30,12 +32,12 @@ class M3u8FileParser {
         if (line.startsWith("#EXT-X-STREAM-INF")) {
             //再次下载文件并解析
             val nextLine = br.readLine()
-            val redirectUrl = if (nextLine.startsWith(content)) {
-                host + nextLine
-            } else {
-                more + nextLine
-            }
-
+//            val redirectUrl = if (nextLine.startsWith(content)) {
+//                host + nextLine
+//            } else {
+//                more + nextLine
+//            }
+            val redirectUrl = URL(URL(url), nextLine).toString()
 //            val strings = nextLine.split("/")
 //            val title = ""
 //            for (item in strings) {
@@ -63,13 +65,8 @@ class M3u8FileParser {
                     break
                 } else {
                     if (hasUrl) {
-                        if (line!!.startsWith(content)) {
-                            list.add(TSItem(index, host + line, id))
-                            Log.d("hyc-parse", "add download url--(${host + line})")
-                        } else {
-                            list.add(TSItem(index, more + line, id))
-                            Log.d("hyc-parse", "add download url--(${more + line})")
-                        }
+                        list.add(TSItem(index, URL(URL(url), line).toString(), id))
+                        Log.d("hyc-parse", "add download url--(${URL(URL(url), line).toString()})")
                         hasUrl = false
                         index++
                     }

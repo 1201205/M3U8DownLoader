@@ -4,6 +4,7 @@ import android.arch.lifecycle.MutableLiveData
 import android.text.TextUtils
 import com.hyc.m3u8downloader.DownloadState.*
 import com.hyc.m3u8downloader.model.*
+import com.hyc.m3u8downloader.utils.Config
 import com.hyc.m3u8downloader.utils.MD5Util
 import com.hyc.m3u8downloader.utils.Sp
 import com.hyc.m3u8downloader.utils.rootPath
@@ -20,7 +21,6 @@ class DownloadManager : IDownloadManager {
     private val downloadingItems: ArrayList<FileDownloader> = ArrayList()
     private val waitingItems: ArrayList<MutableLiveData<MediaItem>> = ArrayList()
     private lateinit var allItems: ArrayList<MutableLiveData<MediaItem>>
-    private var maxDownloadingCount by Sp("max_downloading_count", 3)
     private var maxThreadCount by Sp("max_thread_count", 20)
     private val mClient = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
     private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultLock>()//因为不想添加暂停中状态
@@ -95,18 +95,18 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun getThreadCount(): Int {
-        return maxThreadCount
+        return  Config.maxThread
     }
 
     override fun getFileCount(): Int {
-        return maxDownloadingCount
+        return Config.maxFile
     }
 
     override fun setThreadCount(count: Int) {
         if (count < 1 || count > 8) {
             return
         }
-        maxThreadCount = count
+        Config.maxThread = count
 
     }
 
@@ -114,7 +114,7 @@ class DownloadManager : IDownloadManager {
         if (count < 1 || count > 4) {
             return
         }
-        maxDownloadingCount = count
+        Config.maxFile=count
     }
 
     override fun getAllMedia(): ArrayList<MutableLiveData<MediaItem>> {
@@ -226,7 +226,7 @@ class DownloadManager : IDownloadManager {
             lock = mLockMap[item]
         }
         if (lock == null) {
-            lock = MultLock(maxThreadCount)
+            lock = MultLock(Config.maxThread)
             mLockMap[item] = lock
         }
         val downloader = FileDownloader(mClient, mExecutor, lock)

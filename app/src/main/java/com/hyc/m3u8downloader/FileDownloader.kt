@@ -51,7 +51,7 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
     fun download(item: MutableLiveData<MediaItem>, callBack: DownloadCallBack) {
         mItem = item
         item.value?.let {
-            if (it.list == null) {
+            if (it.list == null|| it.list!!.isEmpty()) {
                 if (TextUtils.isEmpty(it.url)) {
                     return
                 }
