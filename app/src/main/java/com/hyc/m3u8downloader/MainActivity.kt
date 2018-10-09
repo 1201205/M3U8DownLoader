@@ -107,18 +107,19 @@ class MainActivity : AppCompatActivity(), MediaController {
                 }
             })
         } else {
-            val intent = Intent(Intent.ACTION_VIEW)
-            val type = "video/*"
-            var uri: Uri
-            uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                val file = File(mp4Path)
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                FileProvider.getUriForFile(this, "com.hyc.m3u8downloader.fileProvider", file)
-            } else {
-                Uri.parse(mp4Path)
-            }
-            intent.setDataAndType(uri, type)
-            startActivity(intent)
+            VideoActivity.start(mp4Path!!,this)
+//            val intent = Intent(Intent.ACTION_VIEW)
+//            val type = "video/*"
+//            var uri: Uri
+//            uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                val file = File(mp4Path)
+//                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//                FileProvider.getUriForFile(this, "com.hyc.m3u8downloader.fileProvider", file)
+//            } else {
+//                Uri.parse(mp4Path)
+//            }
+//            intent.setDataAndType(uri, type)
+//            startActivity(intent)
         }
     }
 
