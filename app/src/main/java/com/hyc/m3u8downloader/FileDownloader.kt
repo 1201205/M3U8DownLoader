@@ -165,6 +165,8 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
             }
 
             override fun onFailure(call: Call?, e: IOException?) {
+                e!!.printStackTrace()
+                callBack.onDownloadFailed(mItem!!)
             }
         })
     }

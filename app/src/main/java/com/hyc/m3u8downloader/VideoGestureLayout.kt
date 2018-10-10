@@ -57,9 +57,7 @@ class VideoGestureLayout @JvmOverloads constructor(
                 }
             }
             STATE_FOR_VOLUME ->
-                if (Math.abs(distanceY) > OFFSET) {
                     listener?.onVolumeChange(distanceY)
-                }
             STATE_FOR_BRIGHTNESS -> listener?.onBrightnessChange(distanceY)
             STATE_FOR_SEEK -> listener?.onSeekChange(distanceX)
         }

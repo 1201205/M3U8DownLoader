@@ -21,6 +21,8 @@ import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.VideoGestureLayout
 import com.hyc.m3u8downloader.utils.AudioVolumeController
 import com.hyc.m3u8downloader.utils.BrightnessController
+import com.hyc.m3u8downloader.utils.dip2px
+import com.hyc.m3u8downloader.utils.formatTime
 import tv.danmaku.ijk.media.player.IjkMediaPlayer
 import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
@@ -53,7 +55,7 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         player.setOnPreparedListener { _ ->
             mDuration = player.duration
             mDurationTime = getTimeText(mDuration)
-            tvDuration.text = "/$mDurationTime}"
+            tvDuration.text = "/$mDurationTime"
             startChangeProgress()
             sbProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -82,9 +84,7 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     }
 
     private fun getTimeText(time: Long): String {
-        val date = Date(time)
-        val sdf = SimpleDateFormat("HH:mm:ss")
-        return sdf.format(date)
+        return formatTime(time)
     }
 
     val MSG_HIDE = 2
@@ -117,7 +117,6 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         initView()
         player = IjkMediaPlayer()
         initBrightness()
-
     }
 
     private fun initBrightness() {
@@ -153,7 +152,7 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
             override fun onVolumeChange(size: Float) {
                 Log.e("hyc++oo", "onVolumeChange++$size")
-                showVolume(size > 0)
+                showVolume(size)
             }
 
             override fun onSeekChange(size: Float) {
@@ -207,7 +206,7 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
                 btPause.setBackgroundResource(R.mipmap.ico_pause_all)
             }
         }
-
+        mHandler.sendEmptyMessageDelayed(MSG_HIDE,2000L)
 
         path = intent.getStringExtra("path")
 //        path = "/sdcard/m3u8/1.mp4"
@@ -253,19 +252,23 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         mHandler.removeMessages(MSG_HIDE_TIP)
     }
 
-    private fun showVolume(up: Boolean) {
+    private fun showVolume(size: Float) {
         ico.setBackgroundResource(R.mipmap.ico_volume)
         var current = AudioVolumeController.getInstance().getCurrentVolume()
-        if (up) {
-            current += 1
-        } else {
-            current -= 1
+        if (Math.abs(size) >= dip2px(1f)) {
+            val up = size > 0
+            if (up) {
+                current += 1
+            } else {
+                current -= 1
+            }
+            if (current > mMaxVolume) {
+                current = mMaxVolume
+            } else if (current < 0) {
+                current = 0
+            }
         }
-        if (current > mMaxVolume) {
-            current = mMaxVolume
-        } else if (current < 0) {
-            current = 0
-        }
+
         tvTip.text = "$current/$mMaxVolume"
         AudioVolumeController.getInstance().setVolume(current)
         llTip.visibility = View.VISIBLE
