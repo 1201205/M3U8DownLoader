@@ -22,7 +22,7 @@ class VideoGestureLayout @JvmOverloads constructor(
         }
     }
 
-     var listener: VideoGestureListener? = null
+    var listener: VideoGestureListener? = null
     private val STATE_NONE = 0
     private val STATE_FOR_BRIGHTNESS = 1
     private val STATE_FOR_VOLUME = 2
@@ -56,7 +56,10 @@ class VideoGestureLayout @JvmOverloads constructor(
                     STATE_FOR_BRIGHTNESS
                 }
             }
-            STATE_FOR_VOLUME -> listener?.onVolumeChange(distanceY)
+            STATE_FOR_VOLUME ->
+                if (Math.abs(distanceY) > OFFSET) {
+                    listener?.onVolumeChange(distanceY)
+                }
             STATE_FOR_BRIGHTNESS -> listener?.onBrightnessChange(distanceY)
             STATE_FOR_SEEK -> listener?.onSeekChange(distanceX)
         }

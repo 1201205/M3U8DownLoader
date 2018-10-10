@@ -1,15 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".view.VideoActivity">
+
     <TextureView
         android:id="@+id/txv_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
     <com.hyc.m3u8downloader.VideoGestureLayout
         android:id="@+id/vgl_screen"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/ll_control"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/bt_pause"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="10dp"
+                android:background="@mipmap/ico_pause_all" />
+
+            <SeekBar
+                android:id="@+id/sb_progress"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tv_time"
+                android:layout_width="58dp"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="#ffffff"
+                tools:text="00:11:11" />
+
+            <TextView
+                android:id="@+id/tv_duration"
+                android:layout_width="62dp"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="#ffffff"
+                tools:text="/00:11:11" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_tip"
+            android:background="@drawable/video_tip_bg"
+            android:padding="10dp"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="horizontal">
+            <View
+                android:id="@+id/ico"
+                android:background="@mipmap/ico_video"
+                android:layout_width="24dp"
+                android:layout_height="24dp" />
+            <TextView
+                android:minWidth="56dp"
+                android:id="@+id/tv_tip"
+                android:textColor="#ffffff"
+                android:layout_marginRight="5dp"
+                android:layout_marginLeft="5dp"
+                tools:text="888/888"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
     </com.hyc.m3u8downloader.VideoGestureLayout>
 </FrameLayout>
 

@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 
     <application
         android:name=".MainApplication"
@@ -25,10 +26,8 @@
             android:name="design_height_in_dp"
             android:value="640"/>
         <activity
-            android:screenOrientation="landscape"
-            android:theme="@style/MyTheme"
             android:hardwareAccelerated="true"
-            android:name=".view.VideoActivity"
+            android:name=".MainActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,7 +38,9 @@
         <activity
             android:name=".view.SettingActivity"
             android:launchMode="singleTask" />
-
+        <activity android:name=".view.VideoActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/MyTheme"/>
         <service android:name=".ForegroundService" />
         <provider
             android:name="android.support.v4.content.FileProvider"

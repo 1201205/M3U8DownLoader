@@ -3,4 +3,5 @@
     <color name="colorPrimary">#24429a</color>
     <color name="colorPrimaryDark">#24429a </color>
     <color name="colorAccent">#24429a</color>
+    <color name="video_tip">#36080000</color>
 </resources>

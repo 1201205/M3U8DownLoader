@@ -34,7 +34,8 @@ import java.io.File
 class MainActivity : AppCompatActivity(), MediaController {
     private val SDCARD_PERMISSION_R = Manifest.permission.READ_EXTERNAL_STORAGE
     private val SDCARD_PERMISSION_W = Manifest.permission.WRITE_EXTERNAL_STORAGE
-    private val PERMISSION_NET = "android.Manifest.permission.ACCESS_NETWORK_STATE"
+    private val PERMISSION_NET = "android.Manifest.permission.ACCESS_NETWORK_STATE"//android.permission.
+    private val PERMISSION_SETTINS = "android.Manifest.permission.WRITE_SETTINGS"
     private val mRequestCode = 100
     private lateinit var mBinding: ActivityMainBinding
     private var mWidth: Int = 0
@@ -49,7 +50,7 @@ class MainActivity : AppCompatActivity(), MediaController {
         mBinding.model = ViewModelProviders.of(this).get(MainViewModel::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ActivityCompat.requestPermissions(this@MainActivity,
-                    arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W, PERMISSION_NET), 100)
+                    arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W, PERMISSION_NET,PERMISSION_SETTINS), 100)
         }
         mBinding.model!!.loadingFormDB(this)
         mBinding.setLifecycleOwner(this)
