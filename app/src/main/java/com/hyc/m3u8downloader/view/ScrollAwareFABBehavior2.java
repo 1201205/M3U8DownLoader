@@ -39,6 +39,7 @@ public class ScrollAwareFABBehavior2 extends FloatingActionButton.Behavior {
         }
     }
 
+
     private void animateOut(FloatingActionButton fab) {
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
         int bottomMargin = layoutParams.bottomMargin;

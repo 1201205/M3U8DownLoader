@@ -4,6 +4,7 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
 import android.content.Context
+import android.text.TextUtils
 import android.widget.Toast
 import com.hyc.m3u8downloader.DownloadManager
 import com.hyc.m3u8downloader.MainApplication
@@ -61,7 +62,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun createItem(name: String, url: String) {
-        var success = DownloadManager.getInstance().createNew(url, name)
+        if (TextUtils.isEmpty(url)) {
+            Toast.makeText(MainApplication.instance, "请输入下载链接地址", Toast.LENGTH_LONG).show()
+            return
+        }
+        val success = DownloadManager.getInstance().createNew(url, name)
         if (success) {
             adapter.value!!.notifyDataSetChanged()
         } else {
@@ -76,7 +81,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun hasItems() = DownloadManager.getInstance().hasItems()
     fun reDownload(item: MutableLiveData<MediaItem>) {
-        DownloadManager.getInstance().deleteItem(item)
+        DownloadManager.getInstance().reDownloadItem(item)
         adapter.value!!.notifyDataSetChanged()
     }
 }

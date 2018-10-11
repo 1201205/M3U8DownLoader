@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.CheckBox
 import android.widget.SeekBar
 import android.widget.TextView
+import com.hyc.m3u8downloader.DownloadManager
 import com.hyc.m3u8downloader.ForegroundService
 import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.utils.Config
@@ -21,6 +22,8 @@ class SettingActivity : AppCompatActivity() {
     private lateinit var sbFile: SeekBar
     private lateinit var tvThread: TextView
     private lateinit var tvFile: TextView
+    private val fileCount = Config.maxFile
+    private val threadCount = Config.maxThread
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actiivty_settings)
@@ -33,6 +36,18 @@ class SettingActivity : AppCompatActivity() {
         tvThread = findViewById(R.id.tv_thread)
         tvFile = findViewById(R.id.tv_file)
         init()
+    }
+
+    override fun onBackPressed() {
+        val fileChange = Config.maxFile - fileCount
+        if (fileChange != 0) {
+            DownloadManager.getInstance().onFileCountChanged(fileChange)
+        }
+        val threadChange = Config.maxThread - threadCount
+        if (threadChange != 0) {
+            DownloadManager.getInstance().onThreadCountChanged(threadChange)
+        }
+        super.onBackPressed()
     }
 
     private fun init() {
@@ -117,7 +132,5 @@ class SettingActivity : AppCompatActivity() {
             }
         })
         sbFile.progress = Config.maxFile - 1
-
-
     }
 }

@@ -8,8 +8,8 @@ import java.util.concurrent.LinkedBlockingQueue
 
 class UrlParaser() : Thread() {
     val client: OkHttpClient = OkHttpClient()
-   val queue= LinkedBlockingQueue<String>()
-    val ll = Arrays.asList<String>("application/octet-stream", "application/vnd.apple.mpegurl", "application/mpegurl", "application/x-mpegurl", "audio/mpegurl", "audio/x-mpegurl")
+    val queue = LinkedBlockingQueue<String>()
+//    val ll = Arrays.asList<String>("application/octet-stream", "application/vnd.apple.mpegurl", "application/mpegurl", "application/x-mpegurl", "audio/mpegurl", "audio/x-mpegurl")
     override fun run() {
         while (true) {
             val url = queue.take()
@@ -28,7 +28,7 @@ class UrlParaser() : Thread() {
         }
     }
 
-    fun addUrl(url:String){
+    fun addUrl(url: String) {
         queue.put(url)
     }
 }

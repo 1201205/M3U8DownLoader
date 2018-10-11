@@ -5,7 +5,7 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import com.hyc.m3u8downloader.MainApplication
 
-@Database(entities = [MediaItem::class, TSItem::class], version = 1)
+@Database(entities = [MediaItem::class, TSItem::class,MediaHistory::class], version = 1)
 abstract class MyDatabase : RoomDatabase() {
     abstract fun getMediaItemDao():MediaItemDao
     companion object {

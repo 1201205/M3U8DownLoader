@@ -23,4 +23,6 @@ interface IDownloadManager {
     fun pauseItem(item: MutableLiveData<MediaItem>)
     fun reDownloadItem(item: MutableLiveData<MediaItem>)
     fun hasItems():Boolean
+    fun onFileCountChanged(size:Int)
+    fun onThreadCountChanged(size: Int)
 }

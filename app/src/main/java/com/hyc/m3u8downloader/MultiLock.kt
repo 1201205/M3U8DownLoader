@@ -5,12 +5,11 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 
-class MultLock(var max: Int) : Lock {
+class MultiLock(max: Int) : Lock {
     var sync: Sync = Sync(max)
-    var threadCount=1
+    var threadCount = 1
     override fun lock() {
         sync.acquireShared(threadCount)
-//        throw UnsupportedOperationException("please use tryLock")
     }
 
     override fun tryLock(): Boolean {
@@ -26,9 +25,11 @@ class MultLock(var max: Int) : Lock {
     }
 
     fun getLiveCount() = sync.getLiveState()
-    fun changeToSinge(count:Int){
-        threadCount=count
+
+    fun changeState(size: Int) {
+        sync.changeState(size)
     }
+
     override fun lockInterruptibly() {
         throw UnsupportedOperationException()
     }
@@ -55,6 +56,16 @@ class MultLock(var max: Int) : Lock {
                 }
             }
             return -1
+        }
+
+        fun changeState(size: Int) {
+            while (true) {
+                val current = state
+                val newCount = current + size
+                if (compareAndSetState(current, newCount)) {
+                    return
+                }
+            }
         }
 
         public override fun tryReleaseShared(arg: Int): Boolean {

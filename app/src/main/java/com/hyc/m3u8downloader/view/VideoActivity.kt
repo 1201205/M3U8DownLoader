@@ -13,16 +13,19 @@ import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import com.hyc.m3u8downloader.R
 import com.hyc.m3u8downloader.VideoGestureLayout
-import com.hyc.m3u8downloader.utils.AudioVolumeController
-import com.hyc.m3u8downloader.utils.BrightnessController
-import com.hyc.m3u8downloader.utils.dip2px
-import com.hyc.m3u8downloader.utils.formatTime
+import com.hyc.m3u8downloader.model.MediaHistory
+import com.hyc.m3u8downloader.model.MediaItemDao
+import com.hyc.m3u8downloader.utils.*
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.Consumer
+import io.reactivex.schedulers.Schedulers
 import tv.danmaku.ijk.media.player.IjkMediaPlayer
 import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
@@ -49,6 +52,8 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private fun initPlayer(surfaceTexture: SurfaceTexture?) {
         val surface = Surface(surfaceTexture)
         player.setSurface(surface)
+        player.setScreenOnWhilePlaying(true)
+        player.setOnCompletionListener { onBackPressed() }
         player.dataSource = path
         player.prepareAsync()
         player.isLooping = false
@@ -68,7 +73,30 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
                     player.seekTo(sbProgress.progress * mDuration / 100)
                 }
             })
+            mHistory?.let {
+                if (it.time + 5000 < mDuration) {
+                    player.seekTo(it.time)
+                }
+            }
             player.start()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (player.isPlaying) {
+            player.pause()
+            needResume = true
+        }
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (needResume&&!player.isPlaying) {
+            player.start()
+            needResume = false
         }
     }
 
@@ -108,8 +136,9 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private var mSeekTime = 0F
     private var mDurationTime = ""
     private val mMaxVolume = AudioVolumeController.getInstance().getMaxVolume()
-
+    private var mHistory: MediaHistory? = null
     private val mHandler = InnerHandler(this)
+    private var needResume = false
     var path = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,6 +151,18 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private fun initBrightness() {
         brightnessController = BrightnessController()
         brightnessController.closeAutoBrightness()
+    }
+
+    override fun onBackPressed() {
+        if (Config.storeMediaHistory) {
+            if (mHistory == null) {
+                mHistory = MediaHistory()
+                mHistory!!.filePath = path
+            }
+            mHistory!!.time = player.currentPosition
+            MediaItemDao.insertMediaHistory(mHistory!!)
+        }
+        super.onBackPressed()
     }
 
     override fun onDestroy() {
@@ -143,7 +184,6 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         sbProgress = findViewById(R.id.sb_progress)
         tvTime = findViewById(R.id.tv_time)
         tvDuration = findViewById(R.id.tv_duration)
-        txvVideo.surfaceTextureListener = this
         vglScreen.listener = object : VideoGestureLayout.VideoGestureListener {
             override fun onBrightnessChange(size: Float) {
                 Log.e("hyc++oo", "onBrightnessChange++$size")
@@ -206,7 +246,7 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
                 btPause.setBackgroundResource(R.mipmap.ico_pause_all)
             }
         }
-        mHandler.sendEmptyMessageDelayed(MSG_HIDE,2000L)
+        mHandler.sendEmptyMessageDelayed(MSG_HIDE, 2000L)
 
         path = intent.getStringExtra("path")
 //        path = "/sdcard/m3u8/1.mp4"
@@ -214,6 +254,11 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
             finish()
             return
         }
+        if (Config.storeMediaHistory) {
+            MediaItemDao.loadMediaHistory(path, Consumer { history -> mHistory = history })
+        }
+        txvVideo.surfaceTextureListener = this
+
     }
 
     fun getRealTime(): Long {

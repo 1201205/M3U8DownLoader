@@ -21,9 +21,8 @@ class DownloadManager : IDownloadManager {
     private val downloadingItems: ArrayList<FileDownloader> = ArrayList()
     private val waitingItems: ArrayList<MutableLiveData<MediaItem>> = ArrayList()
     private lateinit var allItems: ArrayList<MutableLiveData<MediaItem>>
-    private var maxThreadCount by Sp("max_thread_count", 20)
     private val mClient = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
-    private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultLock>()//因为不想添加暂停中状态
+    private val mLockMap = HashMap<MutableLiveData<MediaItem>, MultiLock>()//因为不想添加暂停中状态
     private val mExecutor = ThreadPoolExecutor(0, Integer.MAX_VALUE,
             20L, TimeUnit.SECONDS,
             SynchronousQueue(), DefaultThreadFactory())
@@ -38,12 +37,14 @@ class DownloadManager : IDownloadManager {
 
         val item = MediaItem()
         item.url = url
+        val generateName = MD5Util.crypt(item.url)
         if (TextUtils.isEmpty(name)) {
-            item.parentPath = rootPath + MD5Util.crypt(item.url)
+            item.parentPath = rootPath + generateName
+            item.name = generateName
         } else {
             item.parentPath = rootPath + name
+            item.name = name
         }
-        item.name = name
         item.state = WAITING
         item.picPath = ""
         val liveData = MyLiveData()
@@ -95,7 +96,7 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun getThreadCount(): Int {
-        return  Config.maxThread
+        return Config.maxThread
     }
 
     override fun getFileCount(): Int {
@@ -114,7 +115,7 @@ class DownloadManager : IDownloadManager {
         if (count < 1 || count > 4) {
             return
         }
-        Config.maxFile=count
+        Config.maxFile = count
     }
 
     override fun getAllMedia(): ArrayList<MutableLiveData<MediaItem>> {
@@ -124,7 +125,7 @@ class DownloadManager : IDownloadManager {
             for (item in list) {
                 val media = item.mediaItem
                 media!!.list = item.tsFiles
-                if (media.state != SUCCESS) {
+                if (media.state != SUCCESS && media.state != BAD_URL && media.state != FAILED) {
                     media.state = STOPPED
                 }
                 val data = MyLiveData()
@@ -135,6 +136,32 @@ class DownloadManager : IDownloadManager {
         allItems = target
         inited = true
         return target
+    }
+
+    override fun onFileCountChanged(size: Int) {
+        if (size == 0) {
+            return
+        }
+        //数量增加
+        if (size > 0) {
+            while (waitingItems.size > 0 && checkCreateDownloader()) {
+                downloadNext()
+            }
+        } else {
+            while (downloadingItems.size > Config.maxFile) {
+                pauseItem(downloadingItems.last().mItem!!)
+            }
+        }
+    }
+
+    override fun onThreadCountChanged(size: Int) {
+        if (size == 0) {
+            return
+        }
+
+        for ((_, value) in mLockMap) {
+            value.changeState(size)
+        }
     }
 
     override fun deleteItem(item: MutableLiveData<MediaItem>) {
@@ -221,12 +248,12 @@ class DownloadManager : IDownloadManager {
                 return
             }
         }
-        var lock: MultLock? = null
+        var lock: MultiLock? = null
         if (mLockMap.containsKey(item)) {
             lock = mLockMap[item]
         }
         if (lock == null) {
-            lock = MultLock(Config.maxThread)
+            lock = MultiLock(Config.maxThread)
             mLockMap[item] = lock
         }
         val downloader = FileDownloader(mClient, mExecutor, lock)
@@ -239,6 +266,10 @@ class DownloadManager : IDownloadManager {
             }
 
             override fun onDownloadFailed(item: MutableLiveData<MediaItem>) {
+                if (item.value!!.state != BAD_URL) {
+                    item.value!!.state = FAILED
+                }
+                item.postValue(item.value)
                 downloadingItems.remove(downloader)
                 mLockMap.remove(item)
                 downloadNext()

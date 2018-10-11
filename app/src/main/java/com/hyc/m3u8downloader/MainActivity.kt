@@ -14,6 +14,7 @@ import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SimpleItemAnimator
@@ -42,7 +43,6 @@ class MainActivity : AppCompatActivity(), MediaController {
     private val delayTime = 40L
     private val animTime = 300L
     private var menuShowing = false
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity(), MediaController {
         mBinding.model = ViewModelProviders.of(this).get(MainViewModel::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ActivityCompat.requestPermissions(this@MainActivity,
-                    arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W, PERMISSION_NET,PERMISSION_SETTINS), 100)
+                    arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W, PERMISSION_NET, PERMISSION_SETTINS), 100)
         }
         mBinding.model!!.loadingFormDB(this)
         mBinding.setLifecycleOwner(this)
@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity(), MediaController {
         findViewById<RecyclerView>(R.id.rv_content).let {
             var manager = LinearLayoutManager(this)
             it.layoutManager = manager
+            it.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
             (it.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         }
     }
@@ -84,6 +85,7 @@ class MainActivity : AppCompatActivity(), MediaController {
                 }
             }
             DownloadState.SUCCESS -> goToPlay(item)
+            DownloadState.BAD_URL -> onItemLongClicked(item)
         }
     }
 
@@ -108,7 +110,7 @@ class MainActivity : AppCompatActivity(), MediaController {
                 }
             })
         } else {
-            VideoActivity.start(mp4Path!!,this)
+            VideoActivity.start(mp4Path!!, this)
 //            val intent = Intent(Intent.ACTION_VIEW)
 //            val type = "video/*"
 //            var uri: Uri

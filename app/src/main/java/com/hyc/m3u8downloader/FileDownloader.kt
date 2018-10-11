@@ -6,26 +6,22 @@ import android.text.TextUtils
 import android.util.Log
 import com.hyc.m3u8downloader.model.MediaItem
 import com.hyc.m3u8downloader.model.MediaItemDao
-import com.hyc.m3u8downloader.model.MyDatabase
 import com.hyc.m3u8downloader.model.TSItem
-import com.hyc.m3u8downloader.utils.MD5Util
-import com.hyc.m3u8downloader.utils.rootPath
 import okhttp3.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.ThreadPoolExecutor
 
-class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: MultLock) {
+class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: MultiLock) {
     /**
      * 如何暂停下载？？
      * 1.确定下载过程中的当前状态：有下载m3u8和解析文件和下载ts文件3种状态
      * 2.针对每个状态做出处理：下载m3u8就直接取消，解析文件就等待解析完毕，下载ts就发送消息结束下载循环
      */
     private var mClient: OkHttpClient = client
-    private var multLock = lock
+    private var multiLock = lock
     private var mExecutors = executors
     private var mRedirect = 0
     private val INIT = 0
@@ -51,7 +47,7 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
     fun download(item: MutableLiveData<MediaItem>, callBack: DownloadCallBack) {
         mItem = item
         item.value?.let {
-            if (it.list == null|| it.list!!.isEmpty()) {
+            if (it.list == null || it.list!!.isEmpty()) {
                 if (TextUtils.isEmpty(it.url)) {
                     return
                 }
@@ -61,7 +57,7 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                 it.state = DownloadState.DOWNLOADING
                 mItem!!.postValue(it)
                 currentState = DOWNLOADING_TS
-                downloader = MediaDownloader().withClient(mClient).withExecutor(mExecutors).withLock(multLock)
+                downloader = MediaDownloader().withClient(mClient).withExecutor(mExecutors).withLock(multiLock)
                 downloader!!.download(mItem!!, callBack)
 
             }
@@ -110,7 +106,17 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                 var fos: FileOutputStream
                 try {
                     response?.let { rs ->
+                        if (!rs.isSuccessful) {
+                            mItem!!.value!!.state = DownloadState.BAD_URL
+                            callBack.onDownloadFailed(mItem!!)
+                            return
+                        }
                         rs.body()?.let {
+                            if (!it.contentType().toString().contains("mpegurl")) {
+                                mItem!!.value!!.state = DownloadState.BAD_URL
+                                callBack.onDownloadFailed(mItem!!)
+                                return
+                            }
                             inputStream = it.byteStream()
                             val total = it.contentLength()
                             var file = File(path)
@@ -133,13 +139,14 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                                         } else {
                                             item.state = DownloadState.DOWNLOADING
                                         }
+                                        item.fileCount = list.size
                                         MediaItemDao.insertTSItems(list)
                                         mItem!!.postValue(item)
                                         if (stopped) {
                                             return
                                         }
                                         currentState = DOWNLOADING_TS
-                                        downloader = MediaDownloader().withClient(mClient).withExecutor(mExecutors).withLock(multLock)
+                                        downloader = MediaDownloader().withClient(mClient).withExecutor(mExecutors).withLock(multiLock)
                                         downloader!!.download(mItem!!, callBack)
                                     }
                                 }

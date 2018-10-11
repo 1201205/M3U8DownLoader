@@ -14,4 +14,6 @@ object Config {
     var maxThread by Sp("max_thread", 8)
     @JvmStatic
     var maxFile by Sp("maxFile", 4)
+    @JvmStatic
+    var storeMediaHistory by Sp("store_media_history", true)
 }

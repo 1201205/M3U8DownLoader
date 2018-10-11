@@ -15,7 +15,7 @@
         <ImageView
             app:picPath="@{item.picPath}"
             android:id="@+id/iv_pic"
-            android:layout_width="100dp"
+            android:layout_width="177.78dp"
             android:layout_height="100dp"/>
 
         <Button
@@ -28,6 +28,7 @@
             android:layout_centerVertical="true" />
 
         <TextView
+            android:textColor="#000000"
             android:id="@+id/tv_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -36,13 +37,12 @@
             android:layout_toRightOf="@+id/iv_pic"
             android:maxLines="1"
             android:textSize="15sp"
-            android:text="@{item.parentPath}"
+            android:text="@{item.name}"
             tools:text="111111111111111111111111111111" />
 
         <TextView
+            android:textColor="#000000"
             app:state="@{item.state}"
-            app:totalCount="@{item.fileCount}"
-            app:downloadCount="@{item.downloadedCount}"
             android:id="@+id/tv_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,10 +53,11 @@
             android:maxLines="1"
             android:textSize="15sp"
             tools:text="111111111111111111111111111111" />
-
         <TextView
+            android:textColor="#000000"
             app:state="@{item.state}"
-            android:text="@{String.valueOf(item.downloadedCount)}"
+            app:totalCount="@{item.fileCount}"
+            app:downloadCount="@{item.downloadedCount}"
             android:id="@+id/tv_path"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

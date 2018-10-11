@@ -32,7 +32,7 @@ class MediaDownloader : Thread() {
     private var client: OkHttpClient? = null
     private var maxThreadCount: Int = Config.maxThread
     private var isDownloading = false
-    private var lock: MultLock? = null
+    private var lock: MultiLock? = null
     var list: List<String>? = null
     lateinit var mItem: MutableLiveData<MediaItem>
     private var copyList: ArrayList<String> = ArrayList()
@@ -106,7 +106,7 @@ class MediaDownloader : Thread() {
         try {
             loop@
             while (isDownloading && !isInterrupted) {
-                Log.e("media_downloader","enter loop")
+                Log.e("media_downloader", "enter loop")
                 if (copyTSItems.size == 0 && map.size() == 0 && checkArray.size() == 0) {
                     break
                 }
@@ -139,15 +139,15 @@ class MediaDownloader : Thread() {
                     value.path = getFilePath(key)
                     executor!!.execute(M3u8Downloader(value, callBack, call))
                 } else {
-                   while (lock!!.getLiveCount()!=maxThreadCount-1){
-                       Thread.sleep(100)
-                       if (map.size() > 0) {
-                           lock!!.unlock()
-                           continue@loop
-                       }
-                       Log.e("media_downloader","wait for other thread and it's size${lock!!.getLiveCount()}")
-                   }
-                    Log.e("media_downloader","enter and check ")
+                    while (lock!!.getLiveCount() != maxThreadCount - 1) {
+                        Thread.sleep(100)
+                        if (map.size() > 0) {
+                            lock!!.unlock()
+                            continue@loop
+                        }
+                        Log.e("media_downloader", "wait for other thread and it's size${lock!!.getLiveCount()}")
+                    }
+                    Log.e("media_downloader", "enter and check ")
                     //检查下载
 //                    if (lock!!.getLiveCount() == maxThreadCount - 1) {
 //                        lock!!.changeToSinge(maxThreadCount - 1)
@@ -166,9 +166,9 @@ class MediaDownloader : Thread() {
                         var file = File(getFilePath(key))
                         var length = file.length()
                         if (length >= value) {
-                           var start= checkArray.size()
+                            var start = checkArray.size()
                             checkArray.removeAt(0)
-                            var end= checkArray.size()
+                            var end = checkArray.size()
                             Log.d("media_downloader", "check the $key download success it's size = $value  start=$start end=$end")
                         } else {
                             if (downloadingTS.contains(allTs!![key])) {
@@ -203,7 +203,7 @@ class MediaDownloader : Thread() {
             if (TextUtils.isEmpty(fileName)) {
                 fileName = "main"
             }
-            val mp4Path = "$path/$fileName.ts"
+            val mp4Path = "$path/$fileName.mp4"
             mItem.value!!.state = DownloadState.MERGING
             mItem.postValue(mItem.value)
             CMDUtil.instance.executeMerge(file!!.absolutePath, mp4Path)
@@ -211,7 +211,7 @@ class MediaDownloader : Thread() {
             mItem.value!!.mp4Path = mp4Path
             mItem.postValue(mItem.value)
             Log.e("hyc-media", "success")
-//            deleteFile(File(mItem.value!!.parentPath))
+            deleteFile(File(mItem.value!!.parentPath))
             MediaItemDao.deleteTSByItem(mItem.value!!)
             mDownloadCallBack.onDownloadSuccess(mItem)
         } catch (e: Exception) {
@@ -246,7 +246,7 @@ class MediaDownloader : Thread() {
         return this
     }
 
-    fun withLock(lock: MultLock): MediaDownloader {
+    fun withLock(lock: MultiLock): MediaDownloader {
         this.lock = lock
         return this
     }
@@ -264,7 +264,7 @@ class MediaDownloader : Thread() {
             client = OkHttpClient.Builder().connectTimeout(8, TimeUnit.SECONDS).writeTimeout(8, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build()
         }
         if (lock == null) {
-            lock = MultLock(maxThreadCount)
+            lock = MultiLock(maxThreadCount)
         }
         isDownloading = true
         mItem = item
