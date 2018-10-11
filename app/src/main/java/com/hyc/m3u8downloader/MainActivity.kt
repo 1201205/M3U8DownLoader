@@ -10,6 +10,7 @@ import android.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.FileProvider
@@ -48,10 +49,6 @@ class MainActivity : AppCompatActivity(), MediaController {
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         mBinding.controller = this
         mBinding.model = ViewModelProviders.of(this).get(MainViewModel::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ActivityCompat.requestPermissions(this@MainActivity,
-                    arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W, PERMISSION_NET, PERMISSION_SETTINS), 100)
-        }
         mBinding.model!!.loadingFormDB(this)
         mBinding.setLifecycleOwner(this)
         mBinding.model!!.adapter.let {
@@ -68,6 +65,12 @@ class MainActivity : AppCompatActivity(), MediaController {
             it.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
             (it.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         }
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ActivityCompat.requestPermissions(this@MainActivity,
+                    arrayOf(SDCARD_PERMISSION_R, SDCARD_PERMISSION_W, PERMISSION_NET), 100)
+        }
     }
 
     override fun onItemClicked(item: MutableLiveData<MediaItem>) {
@@ -77,11 +80,17 @@ class MainActivity : AppCompatActivity(), MediaController {
                 when (NetStateChangeReceiver.getInstance().getNetState()) {
                     NetStateChangeReceiver.STATE_NO_CONNECT -> Toast.makeText(this, "当前无法连接网络，请连接后再试", Toast.LENGTH_LONG).show()
                     NetStateChangeReceiver.STATE_CONNECT_WIFI -> mBinding.model!!.resumeItem(item)
-                    NetStateChangeReceiver.STATE_CONNECT_OTHER -> showNotWifiDialog(this, object : PositiveClickListener {
-                        override fun onPositiveClicked() {
+                    NetStateChangeReceiver.STATE_CONNECT_OTHER ->
+                        if (Config.dataWork) {
                             mBinding.model!!.resumeItem(item)
+                        } else {
+                            showNotWifiDialog(this, object : PositiveClickListener {
+                                override fun onPositiveClicked() {
+                                    mBinding.model!!.resumeItem(item)
+                                }
+                            })
                         }
-                    })
+
                 }
             }
             DownloadState.SUCCESS -> goToPlay(item)
@@ -188,7 +197,6 @@ class MainActivity : AppCompatActivity(), MediaController {
             showSpaceNotEnoughDialog(this)
         }
         closeMenu()
-
     }
 
     private fun showAddDialog() {
@@ -221,6 +229,21 @@ class MainActivity : AppCompatActivity(), MediaController {
             if (grantResults.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "抱歉，未获取到读写权限，无法使用该应用", Toast.LENGTH_LONG).show()
                 finish()
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Config.goSetting) {
+                    if (!Settings.System.canWrite(applicationContext)) {
+                        showSettingPermissionDialog(this, object : PositiveClickListener {
+                            override fun onPositiveClicked() {
+                                val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:$packageName"))
+                                startActivityForResult(intent, 200)
+                            }
+                        }, object : NegativeClickListener {
+                            override fun onNegativeClicked() {
+                                Config.goSetting = false
+                            }
+                        })
+                    }
+                }
             }
         }
 

@@ -23,6 +23,11 @@
         android:text="提升App进程优先级(提高App下载稳定性)"
         android:layout_width="match_parent"
         android:layout_height="60dp" />
+    <CheckBox
+        android:id="@+id/cb_history"
+        android:text="记录视频上次观看时长"
+        android:layout_width="match_parent"
+        android:layout_height="60dp" />
     <LinearLayout
         android:gravity="center_vertical"
         android:orientation="horizontal"

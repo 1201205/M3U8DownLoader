@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.SurfaceTexture
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
+import android.provider.Settings
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
@@ -186,6 +188,11 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         tvDuration = findViewById(R.id.tv_duration)
         vglScreen.listener = object : VideoGestureLayout.VideoGestureListener {
             override fun onBrightnessChange(size: Float) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!Settings.System.canWrite(applicationContext)) {
+                        return
+                    }
+                }
                 Log.e("hyc++oo", "onBrightnessChange++$size")
                 showBrightness(size)
             }

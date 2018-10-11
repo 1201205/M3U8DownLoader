@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">M3U8DownLoader</string>
+    <string name="app_name">M3U8下载器</string>
     <string name="delete_all">全部删除</string>
     <string name="create_download">创建下载</string>
     <string name="start_all">开始所有</string>

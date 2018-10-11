@@ -139,7 +139,7 @@ class DownloadManager : IDownloadManager {
     }
 
     override fun onFileCountChanged(size: Int) {
-        if (size == 0) {
+        if (size == 0 || downloadingItems.size == 0) {
             return
         }
         //数量增加
@@ -149,7 +149,16 @@ class DownloadManager : IDownloadManager {
             }
         } else {
             while (downloadingItems.size > Config.maxFile) {
-                pauseItem(downloadingItems.last().mItem!!)
+                val item = downloadingItems.last().mItem!!
+                for (downloader in downloadingItems) {
+                    if (downloader.isThisDownloading(item)) {
+                        downloader.stopDownload()
+                        item.value!!.state = STOPPED
+                        item.postValue(item.value)
+                        downloadingItems.remove(downloader)
+                        break
+                    }
+                }
             }
         }
     }
@@ -224,6 +233,7 @@ class DownloadManager : IDownloadManager {
         }
         downloadNext()
     }
+
 
     override fun reDownloadItem(item: MutableLiveData<MediaItem>) {
         deleteItem(item)

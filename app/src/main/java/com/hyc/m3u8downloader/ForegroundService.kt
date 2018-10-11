@@ -32,7 +32,7 @@ class ForegroundService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (mNotificationManager!=null) {
+        if (mNotificationManager != null) {
             return super.onStartCommand(intent, flags, startId)
         }
         Log.e("hyc-service", "onStartCommand---$flags---$startId")

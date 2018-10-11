@@ -18,6 +18,7 @@ class SettingActivity : AppCompatActivity() {
     private lateinit var cb4G: CheckBox
     private lateinit var cbBackground: CheckBox
     private lateinit var cbForeground: CheckBox
+    private lateinit var cbHistory: CheckBox
     private lateinit var sbThread: SeekBar
     private lateinit var sbFile: SeekBar
     private lateinit var tvThread: TextView
@@ -31,6 +32,7 @@ class SettingActivity : AppCompatActivity() {
         cb4G = findViewById(R.id.cb_4g)
         cbBackground = findViewById(R.id.cb_background)
         cbForeground = findViewById(R.id.cb_foreground)
+        cbHistory = findViewById(R.id.cb_history)
         sbThread = findViewById(R.id.sb_thread)
         sbFile = findViewById(R.id.sb_file)
         tvThread = findViewById(R.id.tv_thread)
@@ -51,6 +53,10 @@ class SettingActivity : AppCompatActivity() {
     }
 
     private fun init() {
+        cbHistory.isChecked=Config.storeMediaHistory
+        cbHistory.setOnClickListener {
+            Config.storeMediaHistory = cbHistory.isChecked
+        }
         cb4G.isChecked = Config.dataWork
         cb4G.setOnClickListener {
             if (!cb4G.isChecked) {
@@ -72,7 +78,6 @@ class SettingActivity : AppCompatActivity() {
         }
         cbBackground.isChecked = Config.backgroundWork
         cbBackground.setOnClickListener {
-            cbBackground.isChecked = cbBackground.isChecked
             Config.backgroundWork = cbBackground.isChecked
         }
         cbForeground.isChecked = Config.foregroundWork
@@ -100,7 +105,6 @@ class SettingActivity : AppCompatActivity() {
         }
         cbWifi.isChecked = Config.autoWork
         cbWifi.setOnClickListener {
-            cbWifi.isChecked = cbWifi.isChecked
             Config.autoWork = cbWifi.isChecked
         }
         tvThread.text = "文件最大下载线程数量：${Config.maxThread}"

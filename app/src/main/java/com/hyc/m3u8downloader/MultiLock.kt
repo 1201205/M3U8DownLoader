@@ -6,8 +6,8 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 
 class MultiLock(max: Int) : Lock {
-    var sync: Sync = Sync(max)
-    var threadCount = 1
+    private var sync: Sync = Sync(max)
+    private var threadCount = 1
     override fun lock() {
         sync.acquireShared(threadCount)
     }

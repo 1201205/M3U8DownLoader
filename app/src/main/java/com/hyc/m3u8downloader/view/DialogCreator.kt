@@ -88,6 +88,18 @@ fun showForegroundDialog(activity: Activity, listener: PositiveClickListener, ne
     builder.show()
 }
 
+fun showSettingPermissionDialog(activity: Activity, listener: PositiveClickListener, negativeClickListener: NegativeClickListener) {
+    val builder = AlertDialog.Builder(activity)
+    builder.setTitle("提示")
+    builder.setMessage("在播放过程中，可以滑动屏幕改变屏幕亮度，但是该功能需要申请修改系统应用权限，是否跳转并进行设置？")
+    builder.setNegativeButton("不使用改功能") { _, _ ->
+        negativeClickListener.onNegativeClicked()
+    }
+    builder.setPositiveButton("确定") { _, _ ->
+        listener.onPositiveClicked()
+    }
+    builder.show()
+}
 
 fun showReDownloadDialog(activity: Activity, listener: PositiveClickListener) {
     val builder = AlertDialog.Builder(activity)

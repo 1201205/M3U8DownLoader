@@ -24,7 +24,7 @@ fun changeState(view: TextView, state: DownloadState) {
 @BindingAdapter("changeBackground")
 fun changeBackground(button: Button, state: DownloadState) {
     when (state) {
-        DownloadState.WAITING -> button.setBackgroundResource(R.mipmap.item_waiting)
+        DownloadState.WAITING -> button.setBackgroundResource(0)
         DownloadState.DOWNLOADING -> button.setBackgroundResource(R.mipmap.pause)
         DownloadState.STOPPED, DownloadState.SUCCESS -> button.setBackgroundResource(R.mipmap.play)
     }

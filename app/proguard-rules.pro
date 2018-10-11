@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-keep class com.hyc.m3u8downloader.model.MediaItem
+-keep class com.hyc.m3u8downloader.model.TSItem
+-keep class com.hyc.m3u8downloader.model.MediaHistory
