@@ -193,12 +193,10 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
                         return
                     }
                 }
-                Log.e("hyc++oo", "onBrightnessChange++$size")
                 showBrightness(size)
             }
 
             override fun onVolumeChange(size: Float) {
-                Log.e("hyc++oo", "onVolumeChange++$size")
                 showVolume(size)
             }
 
@@ -208,9 +206,6 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
                 }
                 mSeekTime -= size * 100
                 showProgressTip()
-                Log.e("hyc++oo", "onSeekChange++$size")
-                Log.e("hyc++oo", "onUp-----$mSeekTime")
-
             }
 
             override fun onSingleTap() {
@@ -225,16 +220,13 @@ class VideoActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
                     showControl()
                     mHandler.sendEmptyMessageDelayed(MSG_HIDE, 2000L)
                 }
-                Log.e("hyc++oo", "onSingleTap++")
             }
 
             override fun onDoubleTap() {
                 btPause.performClick()
-                Log.e("hyc++oo", "onDoubleTap++")
             }
 
             override fun onUp() {
-                Log.e("hyc++oo", "onUp++${mSeekTime}")
                 if (mSeekTime != 0F) {
                     var position = getRealTime()
                     player.seekTo(position)

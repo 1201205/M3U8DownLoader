@@ -15,11 +15,10 @@ class M3u8FileParser {
     fun parse(id: Long, url: String, file: File, callBack: ParseCallBack) {
         Log.d("hyc-parse", "input url--$url")
         val uri = Uri.parse(url)
-        //目前默认使用http  因为https 很慢
         val host = "${uri.scheme}://${uri.host}"
         val more = (url.replace(uri.lastPathSegment, ""))
         val content = ((more.replace(uri.scheme, "")).replace("://", "")).replace(uri.host, "")
-        Log.d("hyc-parse", "content--$content")
+//        Log.d("hyc-parse", "content--$content")
         val reader = InputStreamReader(FileInputStream(file))
         val br = BufferedReader(reader)
         var line: String? = ""
@@ -32,23 +31,7 @@ class M3u8FileParser {
         if (line.startsWith("#EXT-X-STREAM-INF")) {
             //再次下载文件并解析
             val nextLine = br.readLine()
-//            val redirectUrl = if (nextLine.startsWith(content)) {
-//                host + nextLine
-//            } else {
-//                more + nextLine
-//            }
             val redirectUrl = URL(URL(url), nextLine).toString()
-//            val strings = nextLine.split("/")
-//            val title = ""
-//            for (item in strings) {
-//                if (!item.contains(".m3u8")) {
-//                    title.plus(item)
-//                    title.plus("/")
-//                }
-//            }
-//            if (TextUtils.isEmpty(title) || more) {
-//            }
-            Log.d("hyc-parse", "need redownload url--$redirectUrl")
             callBack.onNeedDownLoad(redirectUrl)
             return
         }
@@ -58,7 +41,7 @@ class M3u8FileParser {
             var list = ArrayList<TSItem>()
             var index = 0;
             while ((br.readLine().apply { line = this }) != null) {
-                Log.e("hyc-parse", line)
+//                Log.e("hyc-parse", line)
                 if (line!!.startsWith("#EXTINF")) {
                     hasUrl = true
                 } else if (TextUtils.equals(line, "#EXT-X-ENDLIST")) {
@@ -66,7 +49,7 @@ class M3u8FileParser {
                 } else {
                     if (hasUrl) {
                         list.add(TSItem(index, URL(URL(url), line).toString(), id))
-                        Log.d("hyc-parse", "add download url--(${URL(URL(url), line).toString()})")
+//                        Log.d("hyc-parse", "add download url--(${URL(URL(url), line).toString()})")
                         hasUrl = false
                         index++
                     }

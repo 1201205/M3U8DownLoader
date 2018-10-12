@@ -39,7 +39,7 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
         val file = File(path)
         file.deleteOnExit()
         file.createNewFile()
-        Log.e("hyc-downloader", "first file---$path")
+//        Log.e("hyc-downloader", "first file---$path")
         downLoad(url, path, callBack)
         mRedirect++
     }
@@ -126,9 +126,9 @@ class FileDownloader(client: OkHttpClient, executors: ExecutorService, lock: Mul
                             while (!stopped && inputStream.read(buf).apply { len = this } != -1) {
                                 fos.write(buf, 0, len)
                                 sum += len
-                                Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
+//                                Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
                             }
-                            Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
+//                            Log.e("hyc-progress", "total:$total---current:$sum+++++$len")
                             fos.flush()
                             currentState = PARSING
                             M3u8FileParser().parse(mItem!!.value!!.id!!, url, file, object : ParseCallBack {

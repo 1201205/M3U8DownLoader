@@ -19,13 +19,13 @@ class ForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.e("hyc-service", "onCreate---")
+//        Log.e("hyc-service", "onCreate---")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         mNotificationManager!!.cancel(1000)
-        Log.e("hyc-service", "onDestroy---")
+//        Log.e("hyc-service", "onDestroy---")
     }
 
     var mNotificationManager: NotificationManager? = null
@@ -35,7 +35,7 @@ class ForegroundService : Service() {
         if (mNotificationManager != null) {
             return super.onStartCommand(intent, flags, startId)
         }
-        Log.e("hyc-service", "onStartCommand---$flags---$startId")
+//        Log.e("hyc-service", "onStartCommand---$flags---$startId")
 //        for (item in intent!!.extras.keySet()) {
 //            Log.e("hyc-service", "onStartCommand---${item}---${intent.getStringExtra(item)}")
 //        }

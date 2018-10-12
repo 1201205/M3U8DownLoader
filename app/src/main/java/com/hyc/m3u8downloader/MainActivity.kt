@@ -144,7 +144,7 @@ class MainActivity : AppCompatActivity(), MediaController {
     }
 
     override fun onDeleteAllClicked(view: View) {
-        Log.e("hyc-fab", "deleteAll")
+//        Log.e("hyc-fab", "deleteAll")
         if (mBinding.model!!.hasItems()) {
             showDeleteAllDialog(this, object : PositiveClickListener {
                 override fun onPositiveClicked() {
@@ -182,7 +182,7 @@ class MainActivity : AppCompatActivity(), MediaController {
     }
 
     override fun onCreateNewMediaClicked(view: View) {
-        Log.e("hyc-fab", "createNewMedia")
+//        Log.e("hyc-fab", "createNewMedia")
         if (hasEnoughSpace()) {
             when (NetStateChangeReceiver.getInstance().getNetState()) {
                 NetStateChangeReceiver.STATE_NO_CONNECT -> Toast.makeText(this, "当前无法连接网络，请连接后再试", Toast.LENGTH_LONG).show()
@@ -208,13 +208,13 @@ class MainActivity : AppCompatActivity(), MediaController {
     }
 
     override fun onPauseAllClicked(view: View) {
-        Log.e("hyc-fab", "pauseAll")
+//        Log.e("hyc-fab", "pauseAll")
         mBinding.model!!.pauseAll()
         closeMenu()
     }
 
     override fun onResumeAllClicked(view: View) {
-        Log.e("hyc-fab", "resumeAll")
+//        Log.e("hyc-fab", "resumeAll")
         if (hasEnoughSpace()) {
             mBinding.model!!.resumeAll()
         } else {

@@ -71,12 +71,12 @@ class MediaDownloader : Thread() {
             tsFile.success = true
             MediaItemDao.updateTS(tsFile)
             lock!!.unlock()
-            Log.e("hyc-thread", "${lock!!.getLiveCount()}-----+${lock.toString()}")
+//            Log.e("hyc-thread", "${lock!!.getLiveCount()}-----+${lock.toString()}")
         }
 
         override fun onGetContentLength(tsFile: TSItem) {
             if (tsFile.success && File(tsFile.path).exists() && File(tsFile.path).length() >= tsFile.total) {
-                Log.e("media_downloader", "some error while downloading")
+//                Log.e("media_downloader", "some error while downloading")
                 checkArray.remove(tsFile.index!!)
                 return
             }
@@ -87,7 +87,7 @@ class MediaDownloader : Thread() {
             map.put(tsFile.index!!, tsFile)
             downloadingTS.remove(tsFile)
             lock!!.unlock()
-            Log.e("hyc-thread", "${lock!!.getLiveCount()}-----+${lock.toString()}")
+//            Log.e("hyc-thread", "${lock!!.getLiveCount()}-----+${lock.toString()}")
         }
     }
     private var downloadingList: ArrayList<String> = ArrayList()
@@ -106,7 +106,7 @@ class MediaDownloader : Thread() {
         try {
             loop@
             while (isDownloading && !isInterrupted) {
-                Log.e("media_downloader", "enter loop")
+//                Log.e("media_downloader", "enter loop")
                 if (copyTSItems.size == 0 && map.size() == 0 && checkArray.size() == 0) {
                     break
                 }
@@ -145,9 +145,9 @@ class MediaDownloader : Thread() {
                             lock!!.unlock()
                             continue@loop
                         }
-                        Log.e("media_downloader", "wait for other thread and it's size${lock!!.getLiveCount()}")
+//                        Log.e("media_downloader", "wait for other thread and it's size${lock!!.getLiveCount()}")
                     }
-                    Log.e("media_downloader", "enter and check ")
+//                    Log.e("media_downloader", "enter and check ")
                     //检查下载
 //                    if (lock!!.getLiveCount() == maxThreadCount - 1) {
 //                        lock!!.changeToSinge(maxThreadCount - 1)
@@ -169,7 +169,7 @@ class MediaDownloader : Thread() {
                             var start = checkArray.size()
                             checkArray.removeAt(0)
                             var end = checkArray.size()
-                            Log.d("media_downloader", "check the $key download success it's size = $value  start=$start end=$end")
+//                            Log.d("media_downloader", "check the $key download success it's size = $value  start=$start end=$end")
                         } else {
                             if (downloadingTS.contains(allTs!![key])) {
                                 //等待当前下载完毕
@@ -177,7 +177,7 @@ class MediaDownloader : Thread() {
                                 continue
                             } else {
                                 map.put(key, allTs!![key])
-                                Log.d("media_downloader", " the $key file download failed  it's size = $value but now $length")
+//                                Log.d("media_downloader", " the $key file download failed  it's size = $value but now $length")
                                 break
                             }
                         }
@@ -210,7 +210,7 @@ class MediaDownloader : Thread() {
             mItem.value!!.state = DownloadState.SUCCESS
             mItem.value!!.mp4Path = mp4Path
             mItem.postValue(mItem.value)
-            Log.e("hyc-media", "success")
+//            Log.e("hyc-media", "success")
             deleteFile(File(mItem.value!!.parentPath))
             MediaItemDao.deleteTSByItem(mItem.value!!)
             mDownloadCallBack.onDownloadSuccess(mItem)

@@ -32,18 +32,18 @@ class M3u8Downloader(private val tsFile: TSItem, private val lock: DownloadCallb
                             fos!!.write(buf, 0, len)
                             sum += len
                         }
-                        Log.e("hyc-progress", "total:$total---current:$sum+++++$len+++++$index")
+//                        Log.e("hyc-progress", "total:$total---current:$sum+++++$len+++++$index")
                         lock.onFileDownloadSuccess(tsFile)
                     }
                 } catch (e: Exception) {
                     lock.onFileDownloadFailed(tsFile)
-                    Log.e("hyc-progress", "need ReDownload )" + call.request().url().toString())
+//                    Log.e("hyc-progress", "need ReDownload )" + call.request().url().toString())
                     e.printStackTrace()
                 }
                 fos?.flush()
             }
         } catch (e: Exception) {
-            Log.e("hyc-progress", "need ReDownload --outer )" + call.request().url().toString())
+//            Log.e("hyc-progress", "need ReDownload --outer )" + call.request().url().toString())
             lock.onFileDownloadFailed(tsFile)
             e.printStackTrace()
         }
